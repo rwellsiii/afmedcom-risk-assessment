@@ -2,673 +2,631 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Capability Gap Risk Assessment Tool — AFMEDCOM</title> <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Capability Gap Risk Assessment — AFMEDCOM</title> <style> *{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,Helvetica,sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh;}
 
-  :root {
-    --bg: #0d1117;
-    --surface: #161b22;
-    --surface2: #1c2128;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #e6edf3;
-    --text2: #8b949e;
-    --text3: #6e7681;
-    --accent: #D85A30;
-    --accent2: #ff7b52;
-    --high: #e74c3c;
-    --sig: #e67e22;
-    --mod: #d4ac0d;
-    --low: #27ae60;
-    --blue: #58a6ff;
-    --mono: 'IBM Plex Mono', monospace;
-    --sans: 'IBM Plex Sans', sans-serif;
-  }
+/* UPLOAD SCREEN */
+#uploadScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;}
+.upload-card{background:#161b22;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:2.5rem 3rem;max-width:560px;width:100%;text-align:center;}
+.upload-logo{font-size:11px;color:#D85A30;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;font-weight:600;}
+.upload-title{font-size:22px;font-weight:700;margin-bottom:.5rem;}
+.upload-sub{font-size:14px;color:#8b949e;line-height:1.6;margin-bottom:2rem;}
+.drop-zone{border:2px dashed rgba(255,255,255,0.2);border-radius:8px;padding:2rem;cursor:pointer;transition:all .2s;margin-bottom:1.25rem;position:relative;}
+.drop-zone:hover{border-color:#D85A30;background:rgba(216,90,48,0.06);}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.drop-icon{font-size:32px;margin-bottom:.5rem;}
+.drop-text{font-size:14px;color:#8b949e;}
+.drop-text strong{color:#D85A30;}
+.or-divider{color:#6e7681;font-size:12px;margin:1rem 0;} .demo-btn{background:#D85A30;color:#fff;border:none;border-radius:6px;padding:12px 28px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-bottom:.75rem;}
+.demo-btn:hover{background:#ff7b52;}
+.template-btn{background:transparent;border:1px solid rgba(255,255,255,0.2);color:#8b949e;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer;width:100%;}
+.template-btn:hover{border-color:#D85A30;color:#e6edf3;}
+.format-note{font-size:11px;color:#6e7681;margin-top:1.25rem;line-height:1.8;text-align:left;background:#1c2128;border-radius:6px;padding:.75rem 1rem;}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+/* MAIN APP */
+#mainApp{display:none;}
+.topbar{background:#161b22;border-bottom:1px solid rgba(255,255,255,0.08);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:100;}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.af-badge{background:#D85A30;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:3px;letter-spacing:.08em;}
+.app-title{font-size:15px;font-weight:700;}
+.app-sub{font-size:11px;color:#6e7681;}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.field-label{font-size:11px;color:#6e7681;}
+select{background:#1c2128;border:1px solid rgba(255,255,255,0.15);border-radius:5px;color:#e6edf3;font-size:13px;padding:6px 10px;outline:none;cursor:pointer;}
+.reload-btn{background:transparent;border:1px solid rgba(255,255,255,0.15);color:#8b949e;border-radius:5px;padding:6px 10px;font-size:12px;cursor:pointer;}
+.reload-btn:hover{color:#e6edf3;}
 
-  /* TOP BAR */
-  .topbar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .topbar-left { display: flex; align-items: center; gap: 14px; }
-  .af-badge {
-    background: var(--accent);
-    color: #fff;
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 500;
-    padding: 3px 8px;
-    border-radius: 3px;
-    letter-spacing: .08em;
-  }
-  .app-title { font-size: 15px; font-weight: 600; color: var(--text); }
-  .app-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.layout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - 54px);overflow:hidden;} @media(max-width:800px){.layout{grid-template-columns:1fr;height:auto;overflow:auto;}}
 
-  .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  label.field-label { font-size: 11px; color: var(--text3); font-family: var(--mono); }
-  select, input[type=text] {
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 5px;
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 13px;
-    padding: 6px 10px;
-    outline: none;
-    cursor: pointer;
-  }
-  select:focus, input:focus { border-color: var(--accent); }
+/* LEFT PANEL */
+.left-panel{background:#161b22;border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;overflow:hidden;}
+.q-nav{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:6px;}
+.nav-btn{background:#1c2128;border:1px solid rgba(255,255,255,0.15);color:#e6edf3;border-radius:5px;padding:6px 12px;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0;}
+.nav-btn:hover{background:rgba(255,255,255,0.1);}
+#qSelect{width:100%;font-size:12px;padding:5px 7px;background:#1c2128;border:1px solid rgba(255,255,255,0.15);border-radius:5px;color:#e6edf3;}
 
-  /* LAYOUT */
-  .layout { display: grid; grid-template-columns: 340px 1fr; height: calc(100vh - 57px); overflow: hidden; }
-  @media(max-width: 900px) { .layout { grid-template-columns: 1fr; height: auto; overflow: auto; } }
+.q-card{padding:12px;border-bottom:1px solid rgba(255,255,255,0.08);} .q-meta{font-size:10px;color:#6e7681;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;}
+.q-text{font-size:13px;line-height:1.55;color:#e6edf3;}
+.q-cat{display:inline-block;background:#1c2128;border:1px solid rgba(255,255,255,0.12);border-radius:3px;font-size:10px;color:#D85A30;padding:2px 6px;margin-top:5px;} .resp-badge{display:inline-block;background:#1c2128;border:1px solid rgba(255,255,255,0.08);border-radius:3px;font-size:10px;color:#6e7681;padding:2px 6px;margin-top:5px;}
 
-  /* LEFT PANEL */
-  .left-panel {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+.sliders-wrap{padding:12px;flex:1;overflow-y:auto;}
+.section-head{font-size:10px;color:#6e7681;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;}
 
-  .q-nav {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .nav-btn {
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    border-radius: 5px;
-    padding: 6px 10px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background .15s;
-    flex-shrink: 0;
-  }
-  .nav-btn:hover { background: var(--border2); }
-  .q-select-wrap { flex: 1; }
-  #qSelect {
-    width: 100%;
-    font-size: 12px;
-    padding: 6px 8px;
-    font-family: var(--mono);
-  }
+.sg{margin-bottom:16px;}
+.sg-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.sg-name{font-size:12px;font-weight:600;color:#8b949e;}
+.sg-val{font-size:15px;font-weight:700;min-width:34px;text-align:right;}
 
-  .q-card {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-  }
-  .q-meta { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-bottom: 5px; display: flex; justify-content: space-between; }
-  .q-text { font-size: 13px; line-height: 1.55; color: var(--text); }
-  .resp-badge {
-    display: inline-block;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 3px;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--text3);
-    padding: 2px 6px;
-    margin-top: 8px;
-  }
+input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;outline:none;cursor:pointer;border:none;padding:0;background:rgba(255,255,255,0.12);margin-bottom:6px;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#D85A30;border:2px solid #0d1117;cursor:pointer;} input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#D85A30;border:2px solid #0d1117;cursor:pointer;}
 
-  /* SLIDERS */
-  .sliders-section { padding: 14px 16px; flex: 1; overflow-y: auto; }
-  .section-head {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--text3);
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
+.bar-row{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
+.bar-track{flex:1;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;position:relative;}
+.bar-fill{height:5px;border-radius:3px;transition:width .15s;} .bar-dot{width:11px;height:11px;border-radius:50%;position:absolute;top:-3px;transform:translateX(-50%);border:2px solid #0d1117;transition:left .15s;}
 
-  .slider-group { margin-bottom: 18px; }
-  .slider-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-  .slider-name { font-size: 12px; font-weight: 500; color: var(--text2); }
-  .slider-val-display {
-    font-family: var(--mono);
-    font-size: 14px;
-    font-weight: 500;
-    min-width: 36px;
-    text-align: right;
-    transition: color .15s;
-  }
+.save-btn{width:100%;padding:11px;background:#D85A30;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;letter-spacing:.02em;}
+.save-btn:hover{background:#ff7b52;}
+.save-btn.saved{background:#27ae60;}
 
-  input[type=range] {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 4px;
-    border-radius: 2px;
-    outline: none;
-    cursor: pointer;
-    border: none;
-    padding: 0;
-    background: var(--border2);
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--accent);
-    border: 2px solid var(--bg);
-    cursor: pointer;
-    transition: transform .1s;
-  }
-  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-  input[type=range]::-moz-range-thumb {
-    width: 16px; height: 16px; border-radius: 50%;
-    background: var(--accent); border: 2px solid var(--bg); cursor: pointer;
-  }
+/* RIGHT PANEL */
+.right-panel{display:flex;flex-direction:column;overflow:hidden;background:#0d1117;}
+.viz-header{padding:9px 16px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:#161b22;}
+.view-toggle{display:flex;gap:4px;}
+.vtbtn{padding:5px 12px;font-size:12px;border:1px solid rgba(255,255,255,0.15);border-radius:4px;background:transparent;color:#8b949e;cursor:pointer;}
+.vtbtn.active{background:#1c2128;color:#e6edf3;border-color:#D85A30;}
+.legend{display:flex;gap:12px;flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:4px;font-size:11px;color:#8b949e;}
+.leg-dot{width:9px;height:9px;border-radius:50%;}
 
-  .slider-bar-vis {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 5px;
-  }
-  .bar-track {
-    flex: 1;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    position: relative;
-  }
-  .bar-fill { height: 4px; border-radius: 2px; transition: width .2s; }
-  .bar-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    position: absolute; top: -3px;
-    transform: translateX(-50%);
-    border: 2px solid var(--bg);
-    transition: left .2s;
-  }
+.canvas-wrap{flex:1;padding:12px 16px;display:flex;flex-direction:column;min-height:280px;}
+#heatCanvas{width:100%;flex:1;display:block;}
 
-  .save-btn {
-    width: 100%;
-    padding: 10px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    letter-spacing: .03em;
-    transition: background .15s, opacity .15s;
-    margin-top: 4px;
-  }
-  .save-btn:hover { background: var(--accent2); }
-  .save-btn.saved { background: var(--low); }
+.stats-bar{border-top:1px solid rgba(255,255,255,0.08);background:#161b22;padding:8px 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.sc{text-align:center;}
+.sc-label{font-size:10px;color:#6e7681;margin-bottom:2px;}
+.sc-val{font-size:20px;font-weight:700;color:#e6edf3;}
 
-  /* RIGHT PANEL */
-  .right-panel {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--bg);
-  }
+.export-bar{border-top:1px solid rgba(255,255,255,0.08);background:#161b22;padding:7px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.exp-btn{padding:5px 12px;font-size:12px;border:1px solid rgba(255,255,255,0.15);border-radius:4px;background:#1c2128;color:#8b949e;cursor:pointer;}
+.exp-btn:hover{border-color:#D85A30;color:#e6edf3;}
+.exp-note{font-size:11px;color:#6e7681;}
+</style>
+</head>
+<body>
 
-  .viz-header {
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-    background: var(--surface);
-  }
-  .view-toggle { display: flex; gap: 4px; }
-  .vtbtn {
-    padding: 5px 12px;
-    font-size: 12px;
-    font-family: var(--mono);
-    border: 1px solid var(--border2);
-    border-radius: 4px;
-    background: transparent;
-    color: var(--text3);
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .vtbtn.active { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+<!-- UPLOAD SCREEN -->
+<div id="uploadScreen">
+  <div class="upload-card">
+    <div class="upload-logo">AFMEDCOM &nbsp;·&nbsp; Capability Gap Risk Assessment</div>
+    <div class="upload-title">Load Your Questions</div>
+    <div class="upload-sub">Upload a CSV or Excel file with your questions, or click below to load 100 sample CBRN capability gap questions and explore the tool immediately.</div>
 
-  .legend { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-  .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text3); font-family: var(--mono); }
-  .leg-dot { width: 9px; height: 9px; border-radius: 50%; }
+    <button class="demo-btn" id="loadDemo">▶ &nbsp;Load Demo &amp; Open Tool Now</button>
 
-  .heatmap-container {
-    flex: 1;
-    padding: 16px 20px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    min-height: 320px;
-  }
-  #heatCanvas { width: 100%; flex: 1; display: block; }
+    <div class="or-divider">— or upload your own questions —</div>
 
-  /* STATS BAR */
-  .stats-bar {
-    border-top: 1px solid var(--border);
-    background: var(--surface);
-    padding: 10px 20px;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-  }
-  .stat-cell { text-align: center; }
-  .stat-label { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-bottom: 2px; }
-  .stat-val { font-family: var(--mono); font-size: 20px; font-weight: 500; color: var(--text); }
-
-  /* EXPORT BAR */
-  .export-bar {
-    border-top: 1px solid var(--border);
-    background: var(--surface);
-    padding: 8px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .export-btn {
-    padding: 6px 14px;
-    font-size: 12px;
-    font-family: var(--mono);
-    border: 1px solid var(--border2);
-    border-radius: 4px;
-    background: var(--surface2);
-    color: var(--text2);
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .export-btn:hover { border-color: var(--accent); color: var(--text); }
-  .export-note { font-size: 11px; color: var(--text3); font-family: var(--mono); }
-
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; } </style> </head> <body>
-
-<div class="topbar">
-  <div class="topbar-left">
-    <span class="af-badge">AFMEDCOM</span>
-    <div>
-      <div class="app-title">Capability Gap Risk Assessment</div>
-      <div class="app-sub">Multi-party stratification · 100 questions · 4 dimensions</div>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept=".csv,.txt">
+      <div class="drop-icon">📂</div>
+      <div class="drop-text"><strong>Click to browse</strong> or drag &amp; drop a CSV file</div>
     </div>
-  </div>
-  <div class="topbar-right">
-    <label class="field-label">Respondent party:</label>
-    <select id="respondentSel">
-      <option>AFMEDCOM HQ</option>
-      <option>AMC</option>
-      <option>PACAF</option>
-      <option>USAFE-AFAFRICA</option>
-      <option>AFSOC</option>
-      <option>ACC</option>
-      <option>AETC</option>
-      <option>AFGSC</option>
-    </select>
+
+    <button class="template-btn" id="dlTemplate">⬇ &nbsp;Download CSV Question Template</button>
+
+    <div class="format-note">
+      <strong style="color:#8b949e;">CSV format (open in Notepad to edit):</strong><br>
+      Row 1: header (skipped automatically)<br>
+      Column A: Question number (optional)<br>
+      Column B: Question text<br>
+      Column C: Category (optional)<br><br>
+      <strong style="color:#8b949e;">No Excel support on restricted networks.</strong> Save your Excel file as CSV first:<br>
+      File → Save As → CSV (Comma delimited)
+    </div>
   </div>
 </div>
 
-<div class="layout">
-  <!-- LEFT -->
-  <div class="left-panel">
-    <div class="q-nav">
-      <button class="nav-btn" id="prevBtn">&#8592;</button>
-      <div class="q-select-wrap">
-        <select id="qSelect"></select>
+<!-- MAIN APP -->
+<div id="mainApp">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="af-badge">AFMEDCOM</span>
+      <div>
+        <div class="app-title">Capability Gap Risk Assessment</div>
+        <div class="app-sub" id="qCount">— questions loaded</div>
       </div>
-      <button class="nav-btn" id="nextBtn">&#8594;</button>
     </div>
-
-    <div class="q-card">
-      <div class="q-meta">
-        <span id="qNum">Question 1 of 100</span>
-        <span id="riskLabel" style="font-weight:500">—</span>
-      </div>
-      <div class="q-text" id="qText"></div>
-      <div class="resp-badge" id="respBadge">0 / 8 parties submitted</div>
-    </div>
-
-    <div class="sliders-section">
-      <div class="section-head">Set ratings (0 = lowest · 100 = highest)</div>
-
-      <div class="slider-group">
-        <div class="slider-top">
-          <span class="slider-name">Risk to Mission</span>
-          <span class="slider-val-display" id="v0">50</span>
-        </div>
-        <input type="range" min="0" max="100" step="1" value="50" id="s0">
-        <div class="slider-bar-vis">
-          <div class="bar-track"><div class="bar-fill" id="bf0" style="width:50%;background:#58a6ff"></div><div class="bar-dot" id="bd0" style="left:50%;background:#58a6ff"></div></div>
-        </div>
-      </div>
-
-      <div class="slider-group">
-        <div class="slider-top">
-          <span class="slider-name">Risk to Force</span>
-          <span class="slider-val-display" id="v1">50</span>
-        </div>
-        <input type="range" min="0" max="100" step="1" value="50" id="s1">
-        <div class="slider-bar-vis">
-          <div class="bar-track"><div class="bar-fill" id="bf1" style="width:50%;background:#D85A30"></div><div class="bar-dot" id="bd1" style="left:50%;background:#D85A30"></div></div>
-        </div>
-      </div>
-
-      <div class="slider-group">
-        <div class="slider-top">
-          <span class="slider-name">Likelihood of Occurring</span>
-          <span class="slider-val-display" id="v2">50</span>
-        </div>
-        <input type="range" min="0" max="100" step="1" value="50" id="s2">
-        <div class="slider-bar-vis">
-          <div class="bar-track"><div class="bar-fill" id="bf2" style="width:50%;background:#d4ac0d"></div><div class="bar-dot" id="bd2" style="left:50%;background:#d4ac0d"></div></div>
-        </div>
-      </div>
-
-      <div class="slider-group">
-        <div class="slider-top">
-          <span class="slider-name">Urgency of Mitigating</span>
-          <span class="slider-val-display" id="v3">50</span>
-        </div>
-        <input type="range" min="0" max="100" step="1" value="50" id="s3">
-        <div class="slider-bar-vis">
-          <div class="bar-track"><div class="bar-fill" id="bf3" style="width:50%;background:#27ae60"></div><div class="bar-dot" id="bd3" style="left:50%;background:#27ae60"></div></div>
-        </div>
-      </div>
-
-      <button class="save-btn" id="saveBtn">Save Response</button>
+    <div class="topbar-right">
+      <span class="field-label">Respondent:</span>
+      <select id="respondentSel">
+        <option>AFMEDCOM HQ</option>
+        <option>AMC</option>
+        <option>PACAF</option>
+        <option>USAFE-AFAFRICA</option>
+        <option>AFSOC</option>
+        <option>ACC</option>
+        <option>AETC</option>
+        <option>AFGSC</option>
+      </select>
+      <button class="reload-btn" id="reloadBtn">⟵ Change Questions</button>
     </div>
   </div>
 
-  <!-- RIGHT -->
-  <div class="right-panel">
-    <div class="viz-header">
-      <div class="view-toggle">
-        <button class="vtbtn active" id="vAll">All Questions</button>
-        <button class="vtbtn" id="vCur">Current Question</button>
-        <button class="vtbtn" id="vComp">By Party</button>
+  <div class="layout">
+    <!-- LEFT -->
+    <div class="left-panel">
+      <div class="q-nav">
+        <button class="nav-btn" id="prevBtn">&#8592;</button>
+        <select id="qSelect"></select>
+        <button class="nav-btn" id="nextBtn">&#8594;</button>
       </div>
-      <div class="legend">
-        <div class="leg-item"><div class="leg-dot" style="background:#e74c3c"></div>High Risk</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#e67e22"></div>Significant</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#d4ac0d"></div>Moderate</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#27ae60"></div>Low Risk</div>
+
+      <div class="q-card">
+        <div class="q-meta">
+          <span id="qNum">Question 1</span>
+          <span id="riskLabel" style="font-weight:700;">—</span>
+        </div>
+        <div class="q-text" id="qText">—</div>
+        <div id="qCatWrap"></div>
+        <div class="resp-badge" id="respBadge">0 / 8 parties submitted</div>
+      </div>
+
+      <div class="sliders-wrap">
+        <div class="section-head">Rate this gap &nbsp;·&nbsp; 0 = lowest &nbsp;·&nbsp; 100 = highest</div>
+
+        <!-- Slider 0: Risk to Mission -->
+        <div class="sg">
+          <div class="sg-top">
+            <span class="sg-name">Risk to Mission</span>
+            <span class="sg-val" id="v0" style="color:#58a6ff;">50</span>
+          </div>
+          <input type="range" min="0" max="100" value="50" id="s0">
+          <div class="bar-row">
+            <div class="bar-track">
+              <div class="bar-fill" id="bf0" style="width:50%;background:#58a6ff;"></div>
+              <div class="bar-dot" id="bd0" style="left:50%;background:#58a6ff;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slider 1: Risk to Force -->
+        <div class="sg">
+          <div class="sg-top">
+            <span class="sg-name">Risk to Force</span>
+            <span class="sg-val" id="v1" style="color:#D85A30;">50</span>
+          </div>
+          <input type="range" min="0" max="100" value="50" id="s1">
+          <div class="bar-row">
+            <div class="bar-track">
+              <div class="bar-fill" id="bf1" style="width:50%;background:#D85A30;"></div>
+              <div class="bar-dot" id="bd1" style="left:50%;background:#D85A30;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slider 2: Likelihood -->
+        <div class="sg">
+          <div class="sg-top">
+            <span class="sg-name">Likelihood of Occurring</span>
+            <span class="sg-val" id="v2" style="color:#d4ac0d;">50</span>
+          </div>
+          <input type="range" min="0" max="100" value="50" id="s2">
+          <div class="bar-row">
+            <div class="bar-track">
+              <div class="bar-fill" id="bf2" style="width:50%;background:#d4ac0d;"></div>
+              <div class="bar-dot" id="bd2" style="left:50%;background:#d4ac0d;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slider 3: Urgency -->
+        <div class="sg">
+          <div class="sg-top">
+            <span class="sg-name">Urgency of Mitigating</span>
+            <span class="sg-val" id="v3" style="color:#27ae60;">50</span>
+          </div>
+          <input type="range" min="0" max="100" value="50" id="s3">
+          <div class="bar-row">
+            <div class="bar-track">
+              <div class="bar-fill" id="bf3" style="width:50%;background:#27ae60;"></div>
+              <div class="bar-dot" id="bd3" style="left:50%;background:#27ae60;"></div>
+            </div>
+          </div>
+        </div>
+
+        <button class="save-btn" id="saveBtn">Save Response</button>
       </div>
     </div>
 
-    <div class="heatmap-container">
-      <canvas id="heatCanvas"></canvas>
-    </div>
+    <!-- RIGHT -->
+    <div class="right-panel">
+      <div class="viz-header">
+        <div class="view-toggle">
+          <button class="vtbtn active" id="vAll">All Questions</button>
+          <button class="vtbtn" id="vCur">Current Question</button>
+          <button class="vtbtn" id="vComp">By Party</button>
+        </div>
+        <div class="legend">
+          <div class="leg"><div class="leg-dot" style="background:#e74c3c;"></div>High Risk</div>
+          <div class="leg"><div class="leg-dot" style="background:#e67e22;"></div>Significant</div>
+          <div class="leg"><div class="leg-dot" style="background:#d4ac0d;"></div>Moderate</div>
+          <div class="leg"><div class="leg-dot" style="background:#27ae60;"></div>Low Risk</div>
+        </div>
+      </div>
 
-    <div class="stats-bar">
-      <div class="stat-cell"><div class="stat-label">Avg Risk · Mission</div><div class="stat-val" id="st0">—</div></div>
-      <div class="stat-cell"><div class="stat-label">Avg Risk · Force</div><div class="stat-val" id="st1">—</div></div>
-      <div class="stat-cell"><div class="stat-label">Avg Likelihood</div><div class="stat-val" id="st2">—</div></div>
-      <div class="stat-cell"><div class="stat-label">Questions Assessed</div><div class="stat-val" id="st3">0</div></div>
-    </div>
+      <div class="canvas-wrap">
+        <canvas id="heatCanvas"></canvas>
+      </div>
 
-    <div class="export-bar">
-      <button class="export-btn" id="exportCSV">Export CSV</button>
-      <button class="export-btn" id="exportPNG">Save Chart PNG</button>
-      <span class="export-note">Data persists in browser session · use Export CSV to save between sessions</span>
+      <div class="stats-bar">
+        <div class="sc"><div class="sc-label">Avg Risk · Mission</div><div class="sc-val" id="st0">—</div></div>
+        <div class="sc"><div class="sc-label">Avg Risk · Force</div><div class="sc-val" id="st1">—</div></div>
+        <div class="sc"><div class="sc-label">Avg Likelihood</div><div class="sc-val" id="st2">—</div></div>
+        <div class="sc"><div class="sc-label">Questions Assessed</div><div class="sc-val" id="st3">0</div></div>
+      </div>
+
+      <div class="export-bar">
+        <button class="exp-btn" id="exportCSV">Export CSV</button>
+        <button class="exp-btn" id="exportPNG">Save Chart PNG</button>
+        <span class="exp-note">Export CSV to save responses between sessions</span>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-const QUESTIONS = [
-  "Lack of integrated CBRN casualty management capability across the AOR",
-  "Inability to detect low-level chemical exposures in distributed environments",
-  "Failure to remotely report individual radiation doses to command nodes",
-  "Insufficient CBRN-validated CONOPS for expeditionary medical teams",
-  "Absence of integrated decision-support pathways for CBRN events",
-  "Inadequate EMEDS training for full-spectrum CBRN care delivery",
-  "Insufficient CBRN-compatible medical detection equipment at MTFs",
-  "Constrained expeditionary diagnostic capacity in contested AORs",
-  "Lack of prophylaxis capacity for emerging CBRN threats",
-  "Gap in protection protocols for new biological threat agents",
-  "Insufficient flight surgeon CBRN readiness across MAJCOMs",
-  "Absence of real-time medical surveillance in distributed operations",
-  "Inadequate casualty decontamination protocols at forward locations",
-  "Lack of interoperable medical C2 systems for CBRN events",
-  "Insufficient personal protective equipment inventory at expeditionary sites",
-  "Absence of validated triage protocols for mass CBRN casualty events",
-  "Gap in aeromedical evacuation capabilities for contaminated patients",
-  "Insufficient medical countermeasure stockpile for biological agents",
-  "Lack of remote medical consultation capability in CBRN environments",
-  "Inadequate chemical agent antidote pre-positioning across the AOR",
-  "Insufficient nuclear/radiological dosimetry tracking infrastructure",
-  "Absence of medical intelligence integration in operational planning",
-  "Gap in behavioral health support for CBRN-exposed personnel",
-  "Inadequate training for mass fatality management in CBRN events",
-  "Lack of standardized CBRN medical reporting formats across MAJCOMs",
-  "Insufficient laboratory surge capacity for biological agent detection",
-  "Absence of mobile medical shelter CBRN hardening standards",
-  "Gap in patient tracking systems for CBRN casualty management",
-  "Inadequate CBRN medical simulation training resources",
-  "Lack of host-nation medical coordination protocols for CBRN events",
-  "Insufficient blood product storage in CBRN-contested environments",
-  "Absence of standardized CBRN medical equipment sets at unit level",
-  "Gap in telemedicine capability for remote CBRN consultations",
-  "Inadequate interagency coordination for CBRN mass casualty response",
-  "Lack of CBRN-specific surgical capability at Role 2 facilities",
-  "Insufficient burn care capacity for chemical exposure casualties",
-  "Absence of validated decontamination procedures for medical equipment",
-  "Gap in preventive medicine CBRN detection protocols",
-  "Inadequate CBRN training for non-medical support personnel",
-  "Lack of CBRN-resilient medical logistics supply chain",
-  "Insufficient mental health resources post-CBRN exposure",
-  "Absence of standardized CBRN exposure reporting system",
-  "Gap in pediatric CBRN treatment protocols for dependent populations",
-  "Inadequate veterinary support for CBRN agricultural threats",
-  "Lack of CBRN-trained medical NCO cadre at unit level",
-  "Insufficient environmental health capacity for CBRN site assessment",
-  "Absence of CBRN medical planning tools in operational systems",
-  "Gap in long-term health surveillance for CBRN-exposed personnel",
-  "Inadequate CBRN-specific pharmacy management protocols",
-  "Lack of standardized CBRN patient handoff procedures across roles of care",
-  "Insufficient medical CBRN exercise frequency across the enterprise",
-  "Absence of CBRN medical after-action review integration process",
-  "Gap in occupational health CBRN monitoring standards",
-  "Inadequate CBRN-specific critical care nursing capability",
-  "Lack of CBRN detection capability at medical treatment facilities",
-  "Insufficient respiratory therapy capacity for chemical casualty management",
-  "Absence of standardized CBRN skin decontamination protocol",
-  "Gap in ophthalmology support for chemical agent eye injury",
-  "Inadequate neurology support for nerve agent casualty management",
-  "Lack of CBRN medical threat intelligence dissemination process",
-  "Insufficient CBRN-specific toxicology consultation capability",
-  "Absence of integrated CBRN medical records system",
-  "Gap in radiation injury bone marrow treatment capability",
-  "Inadequate CBRN medical equipment maintenance training",
-  "Lack of standardized CBRN triage tag and documentation system",
-  "Insufficient CBRN-specific intensive care unit capacity at Role 3",
-  "Absence of validated biological threat agent rapid diagnostic tests",
-  "Gap in CBRN medical training for reserve component forces",
-  "Inadequate CBRN planning integration in operational medicine doctrine",
-  "Lack of interoperable CBRN alert and warning systems for medical units",
-  "Insufficient CBRN-specific physical therapy and rehabilitation capability",
-  "Absence of standardized CBRN hot-zone medical intervention protocol",
-  "Gap in CBRN-specific airway management training for medics",
-  "Inadequate CBRN medical support for special operations forces",
-  "Lack of CBRN-specific medical logistics pre-positioning strategy",
-  "Insufficient CBRN medical training for aeromedical evacuation crews",
-  "Absence of standardized CBRN field sanitation protocol",
-  "Gap in CBRN-specific pain management protocols",
-  "Inadequate CBRN medical support doctrine for multi-domain operations",
-  "Lack of standardized CBRN medical unit activation procedures",
-  "Insufficient CBRN-specific infection control protocols",
-  "Absence of CBRN medical equipment interoperability standards",
-  "Gap in CBRN-specific emergency medical technician training",
-  "Inadequate CBRN-specific toxicological screening capability",
-  "Lack of standardized CBRN medical surge capacity activation protocol",
-  "Insufficient CBRN-specific trauma surgery capability",
-  "Absence of integrated CBRN medical lessons learned repository",
-  "Gap in CBRN medical support for cyber-physical attack scenarios",
-  "Inadequate CBRN-specific medical ethics guidance for triage decisions",
-  "Lack of CBRN-specific medical logistics accountability system",
-  "Insufficient CBRN medical training for joint coalition partners",
-  "Absence of CBRN-specific medical readiness reporting metrics",
-  "Gap in CBRN decontamination support for wounded warriors",
-  "Inadequate CBRN-specific preventive medicine field kit inventory",
-  "Lack of standardized CBRN medical threat assessment framework",
-  "Insufficient CBRN-specific occupational exposure documentation system",
-  "Absence of CBRN medical planning cell at MAJCOM surgeon offices",
-  "Gap in CBRN-specific medical support for base defense operations",
-  "Inadequate CBRN-specific telehealth consultation platform",
-  "Lack of integrated CBRN medical training continuum across career fields"
-];
+// ── QUESTIONS ──────────────────────────────────────────────────────
+const DEMO = [
+  ["Lack of integrated CBRN casualty management capability across the AOR","CBRN"],
+  ["Inability to detect low-level chemical exposures in distributed environments","CBRN"],
+  ["Failure to remotely report individual radiation doses to command nodes","CBRN"],
+  ["Insufficient CBRN-validated CONOPS for expeditionary medical teams","Doctrine"],
+  ["Absence of integrated decision-support pathways for CBRN events","C2"],
+  ["Inadequate EMEDS training for full-spectrum CBRN care delivery","Training"],
+  ["Insufficient CBRN-compatible medical detection equipment at MTFs","Equipment"],
+  ["Constrained expeditionary diagnostic capacity in contested AORs","Logistics"],
+  ["Lack of prophylaxis capacity for emerging CBRN threats","Pharmacy"],
+  ["Gap in protection protocols for new biological threat agents","CBRN"],
+  ["Insufficient flight surgeon CBRN readiness across MAJCOMs","Training"],
+  ["Absence of real-time medical surveillance in distributed operations","C2"],
+  ["Inadequate casualty decontamination protocols at forward locations","CBRN"],
+  ["Lack of interoperable medical C2 systems for CBRN events","C2"],
+  ["Insufficient PPE inventory at expeditionary sites","Equipment"],
+  ["Absence of validated triage protocols for mass CBRN casualty events","Doctrine"],
+  ["Gap in aeromedical evacuation capabilities for contaminated patients","Aeromedical"],
+  ["Insufficient medical countermeasure stockpile for biological agents","Logistics"],
+  ["Lack of remote medical consultation capability in CBRN environments","Telemedicine"],
+  ["Inadequate chemical agent antidote pre-positioning across the AOR","Logistics"],
+  ["Insufficient nuclear/radiological dosimetry tracking infrastructure","CBRN"],
+  ["Absence of medical intelligence integration in operational planning","Intel"],
+  ["Gap in behavioral health support for CBRN-exposed personnel","BH"],
+  ["Inadequate training for mass fatality management in CBRN events","Training"],
+  ["Lack of standardized CBRN medical reporting formats across MAJCOMs","Doctrine"],
+  ["Insufficient laboratory surge capacity for biological agent detection","Lab"],
+  ["Absence of mobile medical shelter CBRN hardening standards","Equipment"],
+  ["Gap in patient tracking systems for CBRN casualty management","C2"],
+  ["Inadequate CBRN medical simulation training resources","Training"],
+  ["Lack of host-nation medical coordination protocols for CBRN events","Partnerships"],
+  ["Insufficient blood product storage in CBRN-contested environments","Logistics"],
+  ["Absence of standardized CBRN medical equipment sets at unit level","Equipment"],
+  ["Gap in telemedicine capability for remote CBRN consultations","Telemedicine"],
+  ["Inadequate interagency coordination for CBRN mass casualty response","Partnerships"],
+  ["Lack of CBRN-specific surgical capability at Role 2 facilities","Clinical"],
+  ["Insufficient burn care capacity for chemical exposure casualties","Clinical"],
+  ["Absence of validated decontamination procedures for medical equipment","CBRN"],
+  ["Gap in preventive medicine CBRN detection protocols","Prev Med"],
+  ["Inadequate CBRN training for non-medical support personnel","Training"],
+  ["Lack of CBRN-resilient medical logistics supply chain","Logistics"],
+  ["Insufficient mental health resources post-CBRN exposure","BH"],
+  ["Absence of standardized CBRN exposure reporting system","Doctrine"],
+  ["Gap in pediatric CBRN treatment protocols for dependent populations","Clinical"],
+  ["Inadequate veterinary support for CBRN agricultural threats","Vet"],
+  ["Lack of CBRN-trained medical NCO cadre at unit level","Training"],
+  ["Insufficient environmental health capacity for CBRN site assessment","Prev Med"],
+  ["Absence of CBRN medical planning tools in operational systems","C2"],
+  ["Gap in long-term health surveillance for CBRN-exposed personnel","Prev Med"],
+  ["Inadequate CBRN-specific pharmacy management protocols","Pharmacy"],
+  ["Lack of standardized CBRN patient handoff procedures across roles of care","Doctrine"],
+  ["Insufficient medical CBRN exercise frequency across the enterprise","Training"],
+  ["Absence of CBRN medical after-action review integration process","Doctrine"],
+  ["Gap in occupational health CBRN monitoring standards","Prev Med"],
+  ["Inadequate CBRN-specific critical care nursing capability","Clinical"],
+  ["Lack of CBRN detection capability at medical treatment facilities","CBRN"],
+  ["Insufficient respiratory therapy capacity for chemical casualty management","Clinical"],
+  ["Absence of standardized CBRN skin decontamination protocol","CBRN"],
+  ["Gap in ophthalmology support for chemical agent eye injury","Clinical"],
+  ["Inadequate neurology support for nerve agent casualty management","Clinical"],
+  ["Lack of CBRN medical threat intelligence dissemination process","Intel"],
+  ["Insufficient CBRN-specific toxicology consultation capability","Clinical"],
+  ["Absence of integrated CBRN medical records system","C2"],
+  ["Gap in radiation injury bone marrow treatment capability","Clinical"],
+  ["Inadequate CBRN medical equipment maintenance training","Training"],
+  ["Lack of standardized CBRN triage tag and documentation system","Doctrine"],
+  ["Insufficient CBRN-specific ICU capacity at Role 3","Clinical"],
+  ["Absence of validated biological threat agent rapid diagnostic tests","Lab"],
+  ["Gap in CBRN medical training for reserve component forces","Training"],
+  ["Inadequate CBRN planning integration in operational medicine doctrine","Doctrine"],
+  ["Lack of interoperable CBRN alert and warning systems for medical units","C2"],
+  ["Insufficient CBRN-specific physical therapy and rehabilitation capability","Clinical"],
+  ["Absence of standardized CBRN hot-zone medical intervention protocol","CBRN"],
+  ["Gap in CBRN-specific airway management training for medics","Training"],
+  ["Inadequate CBRN medical support for special operations forces","AFSOC"],
+  ["Lack of CBRN-specific medical logistics pre-positioning strategy","Logistics"],
+  ["Insufficient CBRN medical training for aeromedical evacuation crews","Training"],
+  ["Absence of standardized CBRN field sanitation protocol","Prev Med"],
+  ["Gap in CBRN-specific pain management protocols","Clinical"],
+  ["Inadequate CBRN medical support doctrine for multi-domain operations","Doctrine"],
+  ["Lack of standardized CBRN medical unit activation procedures","Doctrine"],
+  ["Insufficient CBRN-specific infection control protocols","Prev Med"],
+  ["Absence of CBRN medical equipment interoperability standards","Equipment"],
+  ["Gap in CBRN-specific emergency medical technician training","Training"],
+  ["Inadequate CBRN-specific toxicological screening capability","Lab"],
+  ["Lack of standardized CBRN medical surge capacity activation protocol","Doctrine"],
+  ["Insufficient CBRN-specific trauma surgery capability","Clinical"],
+  ["Absence of integrated CBRN medical lessons learned repository","Doctrine"],
+  ["Gap in CBRN medical support for cyber-physical attack scenarios","C2"],
+  ["Inadequate CBRN-specific medical ethics guidance for triage decisions","Doctrine"],
+  ["Lack of CBRN-specific medical logistics accountability system","Logistics"],
+  ["Insufficient CBRN medical training for joint coalition partners","Partnerships"],
+  ["Absence of CBRN-specific medical readiness reporting metrics","Doctrine"],
+  ["Gap in CBRN decontamination support for wounded warriors","CBRN"],
+  ["Inadequate CBRN-specific preventive medicine field kit inventory","Equipment"],
+  ["Lack of standardized CBRN medical threat assessment framework","Intel"],
+  ["Insufficient CBRN-specific occupational exposure documentation system","Prev Med"],
+  ["Absence of CBRN medical planning cell at MAJCOM surgeon offices","C2"],
+  ["Gap in CBRN-specific medical support for base defense operations","CBRN"],
+  ["Inadequate CBRN-specific telehealth consultation platform","Telemedicine"],
+  ["Lack of integrated CBRN medical training continuum across career fields","Training"] ];
 
 const RESPONDENTS = ['AFMEDCOM HQ','AMC','PACAF','USAFE-AFAFRICA','AFSOC','ACC','AETC','AFGSC'];
-const COLORS = ['#58a6ff','#D85A30','#d4ac0d','#27ae60','#a371f7','#f78166','#79c0ff','#56d364'];
+const PCOLORS = ['#58a6ff','#D85A30','#d4ac0d','#27ae60','#a371f7','#f78166','#79c0ff','#56d364'];
 
-const responses = {};
+let QUESTIONS = [];
+let responses = {};
 let currentQ = 0;
 let viewMode = 'all';
 
-const qSelect = document.getElementById('qSelect');
-QUESTIONS.forEach((q, i) => {
-  const opt = document.createElement('option');
-  opt.value = i;
-  opt.textContent = `Q${String(i+1).padStart(2,'0')} — ${q.substring(0,50)}${q.length>50?'…':''}`;
-  qSelect.appendChild(opt);
+// ── UPLOAD SCREEN ──────────────────────────────────────────────────
+document.getElementById('loadDemo').addEventListener('click', function() {
+  QUESTIONS = DEMO.map(function(d){ return {text: d[0], cat: d[1]}; });
+  initApp(true);
 });
 
-function getKey(q, r){ return `${r}||${q}`; } function getRespondent(){ return document.getElementById('respondentSel').value; }
+document.getElementById('dlTemplate').addEventListener('click', function() {
+  var csv = "Question #,Question Text,Category\n1,Example gap description here,CBRN\n2,Another capability gap,Training\n";
+  var blob = new Blob([csv], {type:'text/csv'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'questions_template.csv';
+  a.click();
+});
 
-function getRiskColor(x, y){
-  const s = (x + y) / 2;
+var dropZone = document.getElementById('dropZone');
+var fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', function(e){ e.preventDefault(); dropZone.style.borderColor='#D85A30'; }); dropZone.addEventListener('dragleave', function(){ dropZone.style.borderColor=''; }); dropZone.addEventListener('drop', function(e){
+  e.preventDefault(); dropZone.style.borderColor='';
+  if(e.dataTransfer.files[0]) readCSV(e.dataTransfer.files[0]); }); fileInput.addEventListener('change', function(e){
+  if(e.target.files[0]) readCSV(e.target.files[0]); });
+
+function readCSV(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var lines = e.target.result.split('\n');
+    var qs = [];
+    lines.forEach(function(line, i) {
+      if(i === 0) return; // skip header
+      line = line.trim();
+      if(!line) return;
+      var parts = line.split(',');
+      // handle quoted fields
+      var cols = parseCSVLine(line);
+      var txt = (cols[1] || cols[0] || '').trim();
+      var cat = (cols[2] || '').trim();
+      if(txt.length > 2) qs.push({text: txt, cat: cat});
+    });
+    if(qs.length === 0) {
+      alert('No questions found. Make sure Column B has question text, or use the template.');
+      return;
+    }
+    QUESTIONS = qs;
+    initApp(false);
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVLine(line) {
+  var result = [], current = '', inQuote = false;
+  for(var i = 0; i < line.length; i++) {
+    var c = line[i];
+    if(c === '"') { inQuote = !inQuote; }
+    else if(c === ',' && !inQuote) { result.push(current); current = ''; }
+    else { current += c; }
+  }
+  result.push(current);
+  return result;
+}
+
+// ── INIT APP ───────────────────────────────────────────────────────
+function initApp(seedData) {
+  responses = {};
+  currentQ = 0;
+  viewMode = 'all';
+
+  document.getElementById('uploadScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('qCount').textContent = QUESTIONS.length + ' questions loaded';
+
+  var sel = document.getElementById('qSelect');
+  sel.innerHTML = '';
+  QUESTIONS.forEach(function(q, i) {
+    var o = document.createElement('option');
+    o.value = i;
+    var num = String(i+1).length < 2 ? '0'+(i+1) : ''+(i+1);
+    o.textContent = 'Q' + num + ' — ' + q.text.substring(0, 46) + (q.text.length > 46 ? '…' : '');
+    sel.appendChild(o);
+  });
+
+  if(seedData) {
+    // Seed some demo responses so heat map is populated
+    var highRisk = [0,1,2,3,4,5];
+    ['AFMEDCOM HQ','AMC','PACAF','USAFE-AFAFRICA'].forEach(function(r) {
+      for(var q = 0; q < Math.min(30, QUESTIONS.length); q++) {
+        var v;
+        if(highRisk.indexOf(q) >= 0) {
+          v = [65+Math.round(Math.random()*25), 60+Math.round(Math.random()*30), 58+Math.round(Math.random()*32), 70+Math.round(Math.random()*20)];
+        } else {
+          v = [20+Math.round(Math.random()*50), 22+Math.round(Math.random()*48), 18+Math.round(Math.random()*52), 25+Math.round(Math.random()*45)];
+        }
+        responses[r+'||'+q] = v;
+      }
+    });
+  }
+
+  loadQ(0);
+  setTimeout(drawHeatmap, 100);
+}
+
+document.getElementById('reloadBtn').addEventListener('click', function() {
+  if(confirm('Go back to question upload? Current responses will be cleared.')) {
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('uploadScreen').style.display = 'flex';
+  }
+});
+
+// ── QUESTION LOGIC ─────────────────────────────────────────────────
+function getR() { return document.getElementById('respondentSel').value; } function key(q, r) { return r + '||' + q; }
+
+function riskColor(x, y) {
+  var s = (x + y) / 2;
   if(s >= 70) return '#e74c3c';
   if(s >= 50) return '#e67e22';
   if(s >= 30) return '#d4ac0d';
   return '#27ae60';
 }
-
-function getRiskLabel(x, y){
-  const s = (x + y) / 2;
+function riskLabel(x, y) {
+  var s = (x + y) / 2;
   if(s >= 70) return 'HIGH RISK';
   if(s >= 50) return 'SIGNIFICANT';
   if(s >= 30) return 'MODERATE';
   return 'LOW RISK';
 }
 
-function updateSlider(i){
-  const val = parseInt(document.getElementById('s'+i).value);
+function updateSlider(i) {
+  var val = parseInt(document.getElementById('s'+i).value);
   document.getElementById('v'+i).textContent = val;
-  document.getElementById('bf'+i).style.width = val+'%';
-  document.getElementById('bd'+i).style.left = val+'%';
-  const colors = ['#58a6ff','#D85A30','#d4ac0d','#27ae60'];
-  document.getElementById('v'+i).style.color = colors[i];
+  document.getElementById('bf'+i).style.width = val + '%';
+  document.getElementById('bd'+i).style.left = val + '%';
   if(viewMode === 'current') drawHeatmap();
-  updateRiskLabel();
+  updateRiskTag();
 }
 
-function updateRiskLabel(){
-  const v = [0,1,2,3].map(i => parseInt(document.getElementById('s'+i).value));
-  const label = getRiskLabel(v[2], (v[0]+v[1])/2);
-  const color = getRiskColor(v[2], (v[0]+v[1])/2);
-  const el = document.getElementById('riskLabel');
-  el.textContent = label;
-  el.style.color = color;
-}
+function updateRiskTag() {
+  var v = [0,1,2,3].map(function(i){ return parseInt(document.getElementById('s'+i).value); });
+  var el = document.getElementById('riskLabel');
+  el.textContent = riskLabel(v[2], (v[0]+v[1])/2);
+  el.style.color = riskColor(v[2], (v[0]+v[1])/2); }
 
-function loadResponse(q){
-  const r = getRespondent();
-  const key = getKey(q, r);
-  const data = responses[key] || [50,50,50,50];
-  [0,1,2,3].forEach(i => {
+function loadQ(q) {
+  if(!QUESTIONS.length) return;
+  var r = getR();
+  var k = key(q, r);
+  var data = responses[k] || [50,50,50,50];
+  [0,1,2,3].forEach(function(i){
     document.getElementById('s'+i).value = data[i];
     updateSlider(i);
   });
-  document.getElementById('qNum').textContent = `Question ${q+1} of 100`;
-  document.getElementById('qText').textContent = QUESTIONS[q];
-  const count = RESPONDENTS.filter(rr => responses[getKey(q,rr)]).length;
-  document.getElementById('respBadge').textContent = `${count} / ${RESPONDENTS.length} parties submitted`;
-  document.getElementById('respBadge').style.borderColor = count > 0 ? 'rgba(88,166,255,0.3)' : 'rgba(255,255,255,0.08)';
-  const sb = document.getElementById('saveBtn');
-  sb.textContent = responses[key] ? 'Update Response' : 'Save Response';
-  sb.classList.toggle('saved', !!responses[key]);
-  qSelect.value = q;
+  document.getElementById('qNum').textContent = 'Question ' + (q+1) + ' of ' + QUESTIONS.length;
+  document.getElementById('qText').textContent = QUESTIONS[q].text;
+  var catWrap = document.getElementById('qCatWrap');
+  if(QUESTIONS[q].cat) {
+    catWrap.innerHTML = '<span class="q-cat">' + QUESTIONS[q].cat + '</span>';
+  } else {
+    catWrap.innerHTML = '';
+  }
+  var count = RESPONDENTS.filter(function(rr){ return responses[key(q,rr)]; }).length;
+  document.getElementById('respBadge').textContent = count + ' / ' + RESPONDENTS.length + ' parties submitted';
+  var sb = document.getElementById('saveBtn');
+  sb.textContent = responses[k] ? 'Update Response' : 'Save Response';
+  sb.classList.toggle('saved', !!responses[k]);
+  document.getElementById('qSelect').value = q;
   drawHeatmap();
   updateStats();
 }
 
-[0,1,2,3].forEach(i => {
-  document.getElementById('s'+i).addEventListener('input', () => updateSlider(i)); });
+[0,1,2,3].forEach(function(i) {
+  document.getElementById('s'+i).addEventListener('input', function(){ updateSlider(i); }); });
 
-document.getElementById('saveBtn').addEventListener('click', () => {
-  const r = getRespondent();
-  const key = getKey(currentQ, r);
-  responses[key] = [0,1,2,3].map(i => parseInt(document.getElementById('s'+i).value));
-  const sb = document.getElementById('saveBtn');
-  sb.textContent = '✓ Saved';
+document.getElementById('saveBtn').addEventListener('click', function() {
+  var r = getR();
+  var k = key(currentQ, r);
+  responses[k] = [0,1,2,3].map(function(i){ return parseInt(document.getElementById('s'+i).value); });
+  var sb = document.getElementById('saveBtn');
+  sb.textContent = '✓ Saved!';
   sb.classList.add('saved');
-  setTimeout(() => { sb.textContent = 'Update Response'; }, 1500);
-  loadResponse(currentQ);
+  setTimeout(function(){ sb.textContent = 'Update Response'; }, 1500);
+  var count = RESPONDENTS.filter(function(rr){ return responses[key(currentQ,rr)]; }).length;
+  document.getElementById('respBadge').textContent = count + ' / ' + RESPONDENTS.length + ' parties submitted';
   drawHeatmap();
   updateStats();
 });
 
-document.getElementById('prevBtn').addEventListener('click', () => { if(currentQ>0){ currentQ--; loadResponse(currentQ); }}); document.getElementById('nextBtn').addEventListener('click', () => { if(currentQ<99){ currentQ++; loadResponse(currentQ); }}); qSelect.addEventListener('change', () => { currentQ=parseInt(qSelect.value); loadResponse(currentQ); }); document.getElementById('respondentSel').addEventListener('change', () => loadResponse(currentQ)); document.getElementById('vAll').addEventListener('click', () => { viewMode='all'; setVT('vAll'); drawHeatmap(); }); document.getElementById('vCur').addEventListener('click', () => { viewMode='current'; setVT('vCur'); drawHeatmap(); }); document.getElementById('vComp').addEventListener('click', () => { viewMode='comp'; setVT('vComp'); drawHeatmap(); }); function setVT(id){ ['vAll','vCur','vComp'].forEach(v => document.getElementById(v).classList.toggle('active', v===id)); }
+document.getElementById('prevBtn').addEventListener('click', function(){
+  if(currentQ > 0){ currentQ--; loadQ(currentQ); } }); document.getElementById('nextBtn').addEventListener('click', function(){
+  if(currentQ < QUESTIONS.length-1){ currentQ++; loadQ(currentQ); } }); document.getElementById('qSelect').addEventListener('change', function(e){
+  currentQ = parseInt(e.target.value); loadQ(currentQ); }); document.getElementById('respondentSel').addEventListener('change', function(){ loadQ(currentQ); });
 
-function drawHeatmap(){
-  const canvas = document.getElementById('heatCanvas');
-  const dpr = window.devicePixelRatio || 1;
-  const W = canvas.offsetWidth || 600;
-  const H = canvas.offsetHeight || 400;
+document.getElementById('vAll').addEventListener('click', function(){ viewMode='all'; setVT('vAll'); drawHeatmap(); }); document.getElementById('vCur').addEventListener('click', function(){ viewMode='current'; setVT('vCur'); drawHeatmap(); }); document.getElementById('vComp').addEventListener('click', function(){ viewMode='comp'; setVT('vComp'); drawHeatmap(); });
+
+function setVT(id) {
+  ['vAll','vCur','vComp'].forEach(function(v){
+    document.getElementById(v).classList.toggle('active', v === id);
+  });
+}
+
+// ── HEATMAP ────────────────────────────────────────────────────────
+function drawHeatmap() {
+  var canvas = document.getElementById('heatCanvas');
+  var wrap = canvas.parentElement;
+  var W = wrap.clientWidth - 32;
+  var H = wrap.clientHeight - 10;
+  if(W < 100) W = 400;
+  if(H < 100) H = 320;
+  var dpr = window.devicePixelRatio || 1;
   canvas.width = W * dpr;
   canvas.height = H * dpr;
-  const ctx = canvas.getContext('2d');
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  var ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
 
-  const pad = {l:52, r:20, t:20, b:48};
-  const cw = W - pad.l - pad.r;
-  const ch = H - pad.t - pad.b;
+  var pad = {l:50, r:18, t:18, b:44};
+  var cw = W - pad.l - pad.r;
+  var ch = H - pad.t - pad.b;
 
-  ctx.clearRect(0,0,W,H);
+  ctx.clearRect(0, 0, W, H);
 
-  // Background zones
-  const steps = 80;
-  for(let xi=0; xi<steps; xi++){
-    for(let yi=0; yi<steps; yi++){
-      const px = xi/steps, py = yi/steps;
-      const dist = Math.sqrt(px*px + py*py) / Math.sqrt(2);
-      let alpha = 0.13;
-      let col;
-      if(dist > 0.72) col = `rgba(231,76,60,${alpha})`;
-      else if(dist > 0.52) col = `rgba(230,126,34,${alpha})`;
-      else if(dist > 0.32) col = `rgba(212,172,13,${alpha})`;
-      else col = `rgba(39,174,96,${alpha})`;
+  // Background gradient zones
+  var steps = 60;
+  for(var xi = 0; xi < steps; xi++) {
+    for(var yi = 0; yi < steps; yi++) {
+      var px = xi/steps, py = yi/steps;
+      var dist = Math.sqrt(px*px + py*py) / Math.sqrt(2);
+      var col;
+      if(dist > 0.72) col = 'rgba(231,76,60,0.15)';
+      else if(dist > 0.52) col = 'rgba(230,126,34,0.15)';
+      else if(dist > 0.32) col = 'rgba(212,172,13,0.13)';
+      else col = 'rgba(39,174,96,0.13)';
       ctx.fillStyle = col;
       ctx.fillRect(pad.l + px*cw, pad.t + (1-py-1/steps)*ch, cw/steps+1, ch/steps+1);
     }
   }
 
-  // Zone arcs
-  [[0.72,'rgba(231,76,60,0.5)'],[0.52,'rgba(230,126,34,0.5)'],[0.32,'rgba(212,172,13,0.5)']].forEach(([r,c]) => {
+  // Zone arc lines
+  var arcs = [[0.72,'rgba(231,76,60,0.55)'],[0.52,'rgba(230,126,34,0.55)'],[0.32,'rgba(212,172,13,0.55)']];
+  arcs.forEach(function(a) {
     ctx.beginPath();
-    ctx.arc(pad.l, pad.t+ch, r*Math.sqrt(cw*cw+ch*ch)*0.88, -Math.PI/2, 0);
-    ctx.strokeStyle = c;
+    ctx.arc(pad.l, pad.t+ch, a[0]*Math.sqrt(cw*cw+ch*ch)*0.87, -Math.PI/2, 0);
+    ctx.strokeStyle = a[1];
     ctx.lineWidth = 1;
     ctx.setLineDash([5,5]);
     ctx.stroke();
@@ -676,148 +634,141 @@ function drawHeatmap(){
   });
 
   // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t+ch); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(pad.l, pad.t+ch); ctx.lineTo(pad.l+cw, pad.t+ch); ctx.stroke();
 
-  // Grid + labels
-  [0,25,50,75,100].forEach(v => {
-    const x = pad.l + v/100*cw;
-    const y = pad.t + ch - v/100*ch;
+  // Grid + tick labels
+  [0,25,50,75,100].forEach(function(v) {
+    var x = pad.l + v/100*cw;
+    var y = pad.t + ch - v/100*ch;
     ctx.strokeStyle = 'rgba(255,255,255,0.06)';
     ctx.lineWidth = 0.5;
     ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t+ch); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l+cw, y); ctx.stroke();
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '10px IBM Plex Mono, monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = '10px Arial';
     ctx.textAlign = 'center';
     ctx.fillText(v, x, pad.t+ch+14);
-    if(v>0){ ctx.textAlign='right'; ctx.fillText(v, pad.l-5, y+3); }
+    if(v > 0) { ctx.textAlign = 'right'; ctx.fillText(v, pad.l-5, y+3); }
   });
 
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.font = '11px IBM Plex Mono, monospace';
+  // Axis labels
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = '11px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('PROBABILITY  (Likelihood of Occurring)', pad.l+cw/2, H-6);
-  ctx.save(); ctx.translate(13, pad.t+ch/2); ctx.rotate(-Math.PI/2);
-  ctx.fillText('CONSEQUENCE  (Risk to Mission + Force)', 0, 0); ctx.restore();
+  ctx.fillText('PROBABILITY  (Likelihood of Occurring)', pad.l + cw/2, H - 4);
+  ctx.save();
+  ctx.translate(12, pad.t + ch/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('CONSEQUENCE  (Risk to Mission + Force)', 0, 0);
+  ctx.restore();
 
-  if(viewMode === 'all'){
-    for(let q=0; q<100; q++){
-      let vals = [];
-      RESPONDENTS.forEach(r => { const k = getKey(q,r); if(responses[k]) vals.push(responses[k]); });
+  // Plot points
+  if(viewMode === 'all') {
+    for(var q = 0; q < QUESTIONS.length; q++) {
+      var vals = [];
+      RESPONDENTS.forEach(function(r){ var k = key(q,r); if(responses[k]) vals.push(responses[k]); });
       if(!vals.length) continue;
-      const avg = [0,1,2,3].map(i => vals.reduce((s,v)=>s+v[i],0)/vals.length);
-      const px = pad.l + avg[2]/100*cw;
-      const py = pad.t + ch - ((avg[0]+avg[1])/2)/100*ch;
-      const isActive = q === currentQ;
+      var avg = [0,1,2,3].map(function(i){ return vals.reduce(function(s,v){ return s+v[i]; },0)/vals.length; });
+      var px = pad.l + avg[2]/100*cw;
+      var py = pad.t + ch - ((avg[0]+avg[1])/2)/100*ch;
+      var isActive = (q === currentQ);
       ctx.beginPath();
-      ctx.arc(px, py, isActive ? 8 : 5, 0, Math.PI*2);
-      ctx.fillStyle = isActive ? '#fff' : getRiskColor(avg[2], (avg[0]+avg[1])/2);
-      ctx.globalAlpha = isActive ? 1 : 0.75;
+      ctx.arc(px, py, isActive ? 9 : 5, 0, Math.PI*2);
+      ctx.fillStyle = isActive ? '#ffffff' : riskColor(avg[2], (avg[0]+avg[1])/2);
+      ctx.globalAlpha = isActive ? 1 : 0.8;
       ctx.fill();
       ctx.globalAlpha = 1;
-      if(isActive){
-        ctx.strokeStyle = getRiskColor(avg[2], (avg[0]+avg[1])/2);
+      if(isActive) {
+        ctx.strokeStyle = riskColor(avg[2], (avg[0]+avg[1])/2);
         ctx.lineWidth = 2.5;
         ctx.stroke();
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 10px IBM Plex Mono, monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(`Q${q+1}`, px, py-12);
+        ctx.fillText('Q'+(q+1), px, py-13);
       }
     }
-  } else if(viewMode === 'current'){
-    const cur = [0,1,2,3].map(i => parseInt(document.getElementById('s'+i).value));
-    const px = pad.l + cur[2]/100*cw;
-    const py = pad.t + ch - ((cur[0]+cur[1])/2)/100*ch;
-    const rc = getRiskColor(cur[2], (cur[0]+cur[1])/2);
-    ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI*2);
-    ctx.fillStyle = rc; ctx.globalAlpha = 0.2; ctx.fill(); ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2);
+  } else if(viewMode === 'current') {
+    var cur = [0,1,2,3].map(function(i){ return parseInt(document.getElementById('s'+i).value); });
+    var cpx = pad.l + cur[2]/100*cw;
+    var cpy = pad.t + ch - ((cur[0]+cur[1])/2)/100*ch;
+    var rc = riskColor(cur[2], (cur[0]+cur[1])/2);
+    ctx.beginPath(); ctx.arc(cpx, cpy, 13, 0, Math.PI*2);
+    ctx.fillStyle = rc; ctx.globalAlpha = 0.15; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(cpx, cpy, 8, 0, Math.PI*2);
     ctx.fillStyle = rc; ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 11px IBM Plex Mono, monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(`Q${currentQ+1}`, px, py-14);
-    ctx.font = '10px IBM Plex Mono, monospace';
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.fillText(`(${Math.round(cur[2])}, ${Math.round((cur[0]+cur[1])/2)})`, px, py+20);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('Q'+(currentQ+1), cpx, cpy-15);
+    ctx.font = '10px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillText('('+Math.round(cur[2])+', '+Math.round((cur[0]+cur[1])/2)+')', cpx, cpy+22);
   } else {
-    // By-party view for current question
-    RESPONDENTS.forEach((r, ri) => {
-      const key = getKey(currentQ, r);
-      if(!responses[key]) return;
-      const v = responses[key];
-      const px = pad.l + v[2]/100*cw;
-      const py = pad.t + ch - ((v[0]+v[1])/2)/100*ch;
-      ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI*2);
-      ctx.fillStyle = COLORS[ri]; ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; ctx.stroke();
-      ctx.fillStyle = COLORS[ri];
-      ctx.font = '10px IBM Plex Mono, monospace';
-      ctx.textAlign = 'left';
-      ctx.fillText(r.substring(0,12), px+9, py+3);
+    // By-party view
+    ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.font = '11px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('Q'+(currentQ+1)+' — All party responses', pad.l+cw/2, pad.t+14);
+    RESPONDENTS.forEach(function(r, ri) {
+      var k = key(currentQ, r);
+      if(!responses[k]) return;
+      var v = responses[k];
+      var ppx = pad.l + v[2]/100*cw;
+      var ppy = pad.t + ch - ((v[0]+v[1])/2)/100*ch;
+      ctx.beginPath(); ctx.arc(ppx, ppy, 7, 0, Math.PI*2);
+      ctx.fillStyle = PCOLORS[ri]; ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = PCOLORS[ri]; ctx.font = '10px Arial'; ctx.textAlign = 'left';
+      ctx.fillText(r.substring(0,13), ppx+10, ppy+3);
     });
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.font = '11px IBM Plex Mono, monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(`Q${currentQ+1} — Party comparison`, pad.l+cw/2, pad.t+14);
   }
 }
 
-function updateStats(){
-  let sums = [0,0,0,0], count = 0;
-  const qsAssessed = new Set();
-  for(let q=0; q<100; q++){
-    RESPONDENTS.forEach(r => {
-      const k = getKey(q,r);
-      if(responses[k]){
-        [0,1,2,3].forEach(i => sums[i] += responses[k][i]);
+// ── STATS ──────────────────────────────────────────────────────────
+function updateStats() {
+  var sums = [0,0,0,0], count = 0;
+  var assessed = {};
+  for(var q = 0; q < QUESTIONS.length; q++) {
+    RESPONDENTS.forEach(function(r) {
+      var k = key(q,r);
+      if(responses[k]) {
+        [0,1,2,3].forEach(function(i){ sums[i] += responses[k][i]; });
         count++;
-        qsAssessed.add(q);
+        assessed[q] = true;
       }
     });
   }
-  [0,1,2].forEach(i => document.getElementById('st'+i).textContent = count > 0 ? Math.round(sums[i]/count) : '—');
-  document.getElementById('st3').textContent = qsAssessed.size; }
-
-// Export CSV
-document.getElementById('exportCSV').addEventListener('click', () => {
-  const rows = ['Respondent,Question #,Question Text,Risk to Mission,Risk to Force,Likelihood,Urgency of Mitigating'];
-  RESPONDENTS.forEach(r => {
-    for(let q=0; q<100; q++){
-      const k = getKey(q,r);
-      if(responses[k]){
-        const v = responses[k];
-        rows.push(`"${r}",${q+1},"${QUESTIONS[q]}",${v[0]},${v[1]},${v[2]},${v[3]}`);
-      }
-    }
+  [0,1,2].forEach(function(i){
+    document.getElementById('st'+i).textContent = count > 0 ? Math.round(sums[i]/count) : '—';
   });
-  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = 'capability_gap_risk_assessment.csv'; a.click(); });
+  document.getElementById('st3').textContent = Object.keys(assessed).length; }
 
-// Export PNG
-document.getElementById('exportPNG').addEventListener('click', () => {
-  const canvas = document.getElementById('heatCanvas');
-  const a = document.createElement('a'); a.href = canvas.toDataURL('image/png');
-  a.download = `risk_heatmap_Q${currentQ+1}.png`; a.click(); });
-
-// Seed demo data
-function seed(){
-  const high = [0,1,2,3,4,5];
-  for(let q=0; q<25; q++){
-    ['AFMEDCOM HQ','AMC','PACAF','USAFE-AFAFRICA'].forEach(r => {
-      let v;
-      if(high.includes(q)) v = [60+Math.round(Math.random()*30), 65+Math.round(Math.random()*25), 55+Math.round(Math.random()*35), 70+Math.round(Math.random()*20)];
-      else v = [20+Math.round(Math.random()*55), 25+Math.round(Math.random()*50), 20+Math.round(Math.random()*55), 25+Math.round(Math.random()*45)];
-      responses[getKey(q,r)] = v;
+// ── EXPORT ─────────────────────────────────────────────────────────
+document.getElementById('exportCSV').addEventListener('click', function() {
+  var rows = ['Respondent,Question #,Question Text,Category,Risk to Mission,Risk to Force,Likelihood,Urgency,Composite Score'];
+  RESPONDENTS.forEach(function(r) {
+    QUESTIONS.forEach(function(q, qi) {
+      var k = key(qi, r);
+      if(responses[k]) {
+        var v = responses[k];
+        var comp = Math.round((v[0]+v[1]+v[2]+v[3])/4);
+        rows.push('"'+r+'",'+(qi+1)+',"'+q.text.replace(/"/g,'""')+'","'+(q.cat||'')+'",'+v[0]+','+v[1]+','+v[2]+','+v[3]+','+comp);
+      }
     });
-  }
-}
-seed();
-loadResponse(0);
-window.addEventListener('resize', () => { setTimeout(drawHeatmap, 50); }); setTimeout(drawHeatmap, 150); </script> </body> </html>
+  });
+  var blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'risk_assessment_responses.csv';
+  a.click();
+});
+
+document.getElementById('exportPNG').addEventListener('click', function() {
+  var canvas = document.getElementById('heatCanvas');
+  var a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = 'risk_heatmap_Q'+(currentQ+1)+'.png';
+  a.click();
+});
+
+window.addEventListener('resize', function(){ setTimeout(drawHeatmap, 60); }); </script> </body> </html>
