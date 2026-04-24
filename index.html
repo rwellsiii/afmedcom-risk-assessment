@@ -2,152 +2,822 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Capability Gap Risk Assessment Tool — AFMEDCOM</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Capability Gap Risk Assessment Tool — AFMEDCOM</title> <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
   :root {
-    --bg:#0d1117;--surface:#161b22;--surface2:#1c2128;
-    --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
-    --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
-    --accent:#D85A30;--accent2:#ff7b52;
-    --high:#e74c3c;--sig:#e67e22;--mod:#d4ac0d;--low:#27ae60;
-    --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --accent: #D85A30;
+    --accent2: #ff7b52;
+    --high: #e74c3c;
+    --sig: #e67e22;
+    --mod: #d4ac0d;
+    --low: #27ae60;
+    --blue: #58a6ff;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
   }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
-  #uploadScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;gap:2rem;}
-  .upload-card{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:2.5rem 3rem;max-width:600px;width:100%;text-align:center;}
-  .upload-logo{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em;margin-bottom:1.5rem;}
-  .upload-title{font-size:22px;font-weight:600;margin-bottom:.5rem;}
-  .upload-sub{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:2rem;}
-  .drop-zone{border:2px dashed var(--border2);border-radius:8px;padding:2.5rem;cursor:pointer;transition:all .2s;margin-bottom:1.5rem;position:relative;}
-  .drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:rgba(216,90,48,0.06);}
-  .drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-  .drop-icon{font-size:36px;margin-bottom:.75rem;color:var(--text3);}
-  .drop-text{font-size:14px;color:var(--text2);}
-  .drop-text strong{color:var(--accent);}
-  .template-btn{background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:6px;padding:8px 18px;font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .15s;}
-  .template-btn:hover{border-color:var(--accent);color:var(--text);}
-  .or-divider{color:var(--text3);font-size:12px;font-family:var(--mono);margin:1rem 0;}
-  .demo-btn{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:10px 24px;font-size:14px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:background .15s;}
-  .demo-btn:hover{background:var(--accent2);}
-  .format-note{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:1.5rem;line-height:1.8;}
-  .format-note span{color:var(--text2);}
-  #mainApp{display:none;}
-  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:100;}
-  .topbar-left{display:flex;align-items:center;gap:12px;}
-  .af-badge{background:var(--accent);color:#fff;font-family:var(--mono);font-size:10px;font-weight:500;padding:3px 8px;border-radius:3px;letter-spacing:.08em;}
-  .app-title{font-size:15px;font-weight:600;}
-  .app-sub{font-size:11px;color:var(--text3);font-family:var(--mono);}
-  .topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-  .field-label{font-size:11px;color:var(--text3);font-family:var(--mono);}
-  select,input[type=text]{background:var(--surface2);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:var(--sans);font-size:13px;padding:6px 10px;outline:none;cursor:pointer;}
-  select:focus{border-color:var(--accent);}
-  .reload-btn{background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:5px;padding:6px 10px;font-size:12px;font-family:var(--mono);cursor:pointer;}
-  .reload-btn:hover{color:var(--text);border-color:var(--border2);}
-  .layout{display:grid;grid-template-columns:350px 1fr;height:calc(100vh - 57px);overflow:hidden;}
-  @media(max-width:900px){.layout{grid-template-columns:1fr;height:auto;overflow:auto;}}
-  .left-panel{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-  .q-nav{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
-  .nav-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:5px;padding:6px 10px;font-size:13px;cursor:pointer;transition:background .15s;flex-shrink:0;}
-  .nav-btn:hover{background:var(--border2);}
-  #qSelect{width:100%;font-size:12px;padding:6px 8px;font-family:var(--mono);}
-  .q-card{padding:12px 14px;border-bottom:1px solid var(--border);}
-  .q-meta{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:4px;display:flex;justify-content:space-between;}
-  .q-text{font-size:13px;line-height:1.55;color:var(--text);}
-  .q-category{display:inline-block;background:var(--surface2);border:1px solid var(--border2);border-radius:3px;font-family:var(--mono);font-size:10px;color:var(--accent);padding:2px 6px;margin-top:6px;}
-  .resp-badge{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:3px;font-family:var(--mono);font-size:10px;color:var(--text3);padding:2px 6px;margin-top:6px;}
-  .sliders-section{padding:12px 14px;flex:1;overflow-y:auto;}
-  .section-head{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;}
-  .slider-group{margin-bottom:16px;}
-  .slider-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
-  .slider-name{font-size:12px;font-weight:500;color:var(--text2);}
-  .slider-val-display{font-family:var(--mono);font-size:14px;font-weight:500;min-width:36px;text-align:right;transition:color .15s;}
-  input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;outline:none;cursor:pointer;border:none;padding:0;background:var(--border2);}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);cursor:pointer;transition:transform .1s;}
-  input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
-  .bar-track{flex:1;height:4px;background:var(--border);border-radius:2px;position:relative;}
-  .bar-fill{height:4px;border-radius:2px;transition:width .2s;}
-  .bar-dot{width:10px;height:10px;border-radius:50%;position:absolute;top:-3px;transform:translateX(-50%);border:2px solid var(--bg);transition:left .2s;}
-  .slider-bar-vis{display:flex;align-items:center;gap:6px;margin-top:4px;}
-  .save-btn{width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:4px;}
-  .save-btn:hover{background:var(--accent2);}
-  .save-btn.saved{background:var(--low);}
-  .right-panel{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
-  .viz-header{padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:var(--surface);}
-  .view-toggle{display:flex;gap:4px;}
-  .vtbtn{padding:5px 12px;font-size:12px;font-family:var(--mono);border:1px solid var(--border2);border-radius:4px;background:transparent;color:var(--text3);cursor:pointer;transition:all .15s;}
-  .vtbtn.active{background:var(--surface2);color:var(--text);border-color:var(--accent);}
-  .legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
-  .leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:var(--mono);}
-  .leg-dot{width:9px;height:9px;border-radius:50%;}
-  .heatmap-container{flex:1;padding:14px 18px;display:flex;flex-direction:column;overflow:hidden;min-height:300px;}
-  #heatCanvas{width:100%;flex:1;display:block;}
-  .stats-bar{border-top:1px solid var(--border);background:var(--surface);padding:10px 18px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-  .stat-cell{text-align:center;}
-  .stat-label{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:2px;}
-  .stat-val{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--text);}
-  .export-bar{border-top:1px solid var(--border);background:var(--surface);padding:8px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-  .export-btn{padding:5px 12px;font-size:12px;font-family:var(--mono);border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .15s;}
-  .export-btn:hover{border-color:var(--accent);color:var(--text);}
-  .export-note{font-size:11px;color:var(--text3);font-family:var(--mono);}
-  ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
-</style>
-</head>
-<body>
-<div id="uploadScreen">
-  <div class="upload-card">
-    <div class="upload-logo">AFMEDCOM · CAPABILITY GAP RISK ASSESSMENT</div>
-    <div class="upload-title">Load Your Questions</div>
-    <div class="upload-sub">Upload an Excel file containing your capability gap questions to begin. Each row becomes one assessment question in the tool.</div>
-    <div class="drop-zone" id="dropZone">
-      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
-      <div class="drop-icon">📂</div>
-      <div class="drop-text"><strong>Click to browse</strong> or drag &amp; drop your Excel file here</div>
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .af-badge {
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: .08em;
+  }
+  .app-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .app-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+  .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  label.field-label { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  select, input[type=text] {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 6px 10px;
+    outline: none;
+    cursor: pointer;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+
+  /* LAYOUT */
+  .layout { display: grid; grid-template-columns: 340px 1fr; height: calc(100vh - 57px); overflow: hidden; }
+  @media(max-width: 900px) { .layout { grid-template-columns: 1fr; height: auto; overflow: auto; } }
+
+  /* LEFT PANEL */
+  .left-panel {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .q-nav {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    border-radius: 5px;
+    padding: 6px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s;
+    flex-shrink: 0;
+  }
+  .nav-btn:hover { background: var(--border2); }
+  .q-select-wrap { flex: 1; }
+  #qSelect {
+    width: 100%;
+    font-size: 12px;
+    padding: 6px 8px;
+    font-family: var(--mono);
+  }
+
+  .q-card {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .q-meta { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-bottom: 5px; display: flex; justify-content: space-between; }
+  .q-text { font-size: 13px; line-height: 1.55; color: var(--text); }
+  .resp-badge {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    padding: 2px 6px;
+    margin-top: 8px;
+  }
+
+  /* SLIDERS */
+  .sliders-section { padding: 14px 16px; flex: 1; overflow-y: auto; }
+  .section-head {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .slider-group { margin-bottom: 18px; }
+  .slider-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .slider-name { font-size: 12px; font-weight: 500; color: var(--text2); }
+  .slider-val-display {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 36px;
+    text-align: right;
+    transition: color .15s;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    background: var(--border2);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    cursor: pointer;
+    transition: transform .1s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--bg); cursor: pointer;
+  }
+
+  .slider-bar-vis {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 5px;
+  }
+  .bar-track {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    position: relative;
+  }
+  .bar-fill { height: 4px; border-radius: 2px; transition: width .2s; }
+  .bar-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    position: absolute; top: -3px;
+    transform: translateX(-50%);
+    border: 2px solid var(--bg);
+    transition: left .2s;
+  }
+
+  .save-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: .03em;
+    transition: background .15s, opacity .15s;
+    margin-top: 4px;
+  }
+  .save-btn:hover { background: var(--accent2); }
+  .save-btn.saved { background: var(--low); }
+
+  /* RIGHT PANEL */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .viz-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: var(--surface);
+  }
+  .view-toggle { display: flex; gap: 4px; }
+  .vtbtn {
+    padding: 5px 12px;
+    font-size: 12px;
+    font-family: var(--mono);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .vtbtn.active { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+
+  .legend { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  .leg-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+  .heatmap-container {
+    flex: 1;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 320px;
+  }
+  #heatCanvas { width: 100%; flex: 1; display: block; }
+
+  /* STATS BAR */
+  .stats-bar {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 10px 20px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .stat-cell { text-align: center; }
+  .stat-label { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-bottom: 2px; }
+  .stat-val { font-family: var(--mono); font-size: 20px; font-weight: 500; color: var(--text); }
+
+  /* EXPORT BAR */
+  .export-bar {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .export-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-family: var(--mono);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .export-btn:hover { border-color: var(--accent); color: var(--text); }
+  .export-note { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; } </style> </head> <body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="af-badge">AFMEDCOM</span>
+    <div>
+      <div class="app-title">Capability Gap Risk Assessment</div>
+      <div class="app-sub">Multi-party stratification · 100 questions · 4 dimensions</div>
     </div>
-    <button class="template-btn" id="downloadTemplate">⬇ Download Question Template (.xlsx)</button>
-    <div class="or-divider">— or —</div>
-    <button class="demo-btn" id="loadDemo">Load Demo Questions (100 sample CBRN gaps)</button>
-    <div class="format-note">
-      Expected columns in your Excel file:<br>
-      <span>Column A: Question # (optional)</span><br>
-      <span>Column B: Capability Gap Title / Question Text</span><br>
-      <span>Column C: Category / Domain (optional)</span>
+  </div>
+  <div class="topbar-right">
+    <label class="field-label">Respondent party:</label>
+    <select id="respondentSel">
+      <option>AFMEDCOM HQ</option>
+      <option>AMC</option>
+      <option>PACAF</option>
+      <option>USAFE-AFAFRICA</option>
+      <option>AFSOC</option>
+      <option>ACC</option>
+      <option>AETC</option>
+      <option>AFGSC</option>
+    </select>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- LEFT -->
+  <div class="left-panel">
+    <div class="q-nav">
+      <button class="nav-btn" id="prevBtn">&#8592;</button>
+      <div class="q-select-wrap">
+        <select id="qSelect"></select>
+      </div>
+      <button class="nav-btn" id="nextBtn">&#8594;</button>
+    </div>
+
+    <div class="q-card">
+      <div class="q-meta">
+        <span id="qNum">Question 1 of 100</span>
+        <span id="riskLabel" style="font-weight:500">—</span>
+      </div>
+      <div class="q-text" id="qText"></div>
+      <div class="resp-badge" id="respBadge">0 / 8 parties submitted</div>
+    </div>
+
+    <div class="sliders-section">
+      <div class="section-head">Set ratings (0 = lowest · 100 = highest)</div>
+
+      <div class="slider-group">
+        <div class="slider-top">
+          <span class="slider-name">Risk to Mission</span>
+          <span class="slider-val-display" id="v0">50</span>
+        </div>
+        <input type="range" min="0" max="100" step="1" value="50" id="s0">
+        <div class="slider-bar-vis">
+          <div class="bar-track"><div class="bar-fill" id="bf0" style="width:50%;background:#58a6ff"></div><div class="bar-dot" id="bd0" style="left:50%;background:#58a6ff"></div></div>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-top">
+          <span class="slider-name">Risk to Force</span>
+          <span class="slider-val-display" id="v1">50</span>
+        </div>
+        <input type="range" min="0" max="100" step="1" value="50" id="s1">
+        <div class="slider-bar-vis">
+          <div class="bar-track"><div class="bar-fill" id="bf1" style="width:50%;background:#D85A30"></div><div class="bar-dot" id="bd1" style="left:50%;background:#D85A30"></div></div>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-top">
+          <span class="slider-name">Likelihood of Occurring</span>
+          <span class="slider-val-display" id="v2">50</span>
+        </div>
+        <input type="range" min="0" max="100" step="1" value="50" id="s2">
+        <div class="slider-bar-vis">
+          <div class="bar-track"><div class="bar-fill" id="bf2" style="width:50%;background:#d4ac0d"></div><div class="bar-dot" id="bd2" style="left:50%;background:#d4ac0d"></div></div>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-top">
+          <span class="slider-name">Urgency of Mitigating</span>
+          <span class="slider-val-display" id="v3">50</span>
+        </div>
+        <input type="range" min="0" max="100" step="1" value="50" id="s3">
+        <div class="slider-bar-vis">
+          <div class="bar-track"><div class="bar-fill" id="bf3" style="width:50%;background:#27ae60"></div><div class="bar-dot" id="bd3" style="left:50%;background:#27ae60"></div></div>
+        </div>
+      </div>
+
+      <button class="save-btn" id="saveBtn">Save Response</button>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel">
+    <div class="viz-header">
+      <div class="view-toggle">
+        <button class="vtbtn active" id="vAll">All Questions</button>
+        <button class="vtbtn" id="vCur">Current Question</button>
+        <button class="vtbtn" id="vComp">By Party</button>
+      </div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#e74c3c"></div>High Risk</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#e67e22"></div>Significant</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#d4ac0d"></div>Moderate</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#27ae60"></div>Low Risk</div>
+      </div>
+    </div>
+
+    <div class="heatmap-container">
+      <canvas id="heatCanvas"></canvas>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-cell"><div class="stat-label">Avg Risk · Mission</div><div class="stat-val" id="st0">—</div></div>
+      <div class="stat-cell"><div class="stat-label">Avg Risk · Force</div><div class="stat-val" id="st1">—</div></div>
+      <div class="stat-cell"><div class="stat-label">Avg Likelihood</div><div class="stat-val" id="st2">—</div></div>
+      <div class="stat-cell"><div class="stat-label">Questions Assessed</div><div class="stat-val" id="st3">0</div></div>
+    </div>
+
+    <div class="export-bar">
+      <button class="export-btn" id="exportCSV">Export CSV</button>
+      <button class="export-btn" id="exportPNG">Save Chart PNG</button>
+      <span class="export-note">Data persists in browser session · use Export CSV to save between sessions</span>
     </div>
   </div>
 </div>
-<div id="mainApp">
-  <div class="topbar">
-    <div class="topbar-left">
-      <span class="af-badge">AFMEDCOM</span>
-      <div>
-        <div class="app-title">Capability Gap Risk Assessment</div>
-        <div class="app-sub" id="questionCount">0 questions loaded</div>
-      </div>
-    </div>
-    <div class="topbar-right">
-      <span class="field-label">Respondent:</span>
-      <select id="respondentSel">
-        <option>AFMEDCOM HQ</option><option>AMC</option><option>PACAF</option>
-        <option>USAFE-AFAFRICA</option><option>AFSOC</option><option>ACC</option>
-        <option>AETC</option><option>AFGSC</option>
-      </select>
-      <button class="reload-btn" id="reloadBtn">⟵ Change Questions</button>
-    </div>
-  </div>
-  <div class="layout">
-    <div class="left-panel">
-      <div class="q-nav">
-        <button class="nav-btn" id="prevBtn">&#8592;</button>
-        <select id="qSelect"></select>
-        <button class="nav-btn" id="nextBtn">&#8594;</button>
-      </div>
-      <div class="q-card">
-        <div class="q-meta"><span id="qNum">Question 1</span><span id="riskLabel" style="font-weight:500">—</span></div>
-        <div class="q-text" id="qText"></div>
-        <div id="qCategory"></div>
-        <div class="resp-badge" id="respBadge">0 / 8 parties submitted</div>
-      </div>
-      <div class="sliders-section">
-        <div class="section-head">Set ratings &nbsp;·&nbsp; 0 = lowest &nbsp;·&nbsp; 100 = highest</div>
-        <div class="slider-group">
+
+<script>
+const QUESTIONS = [
+  "Lack of integrated CBRN casualty management capability across the AOR",
+  "Inability to detect low-level chemical exposures in distributed environments",
+  "Failure to remotely report individual radiation doses to command nodes",
+  "Insufficient CBRN-validated CONOPS for expeditionary medical teams",
+  "Absence of integrated decision-support pathways for CBRN events",
+  "Inadequate EMEDS training for full-spectrum CBRN care delivery",
+  "Insufficient CBRN-compatible medical detection equipment at MTFs",
+  "Constrained expeditionary diagnostic capacity in contested AORs",
+  "Lack of prophylaxis capacity for emerging CBRN threats",
+  "Gap in protection protocols for new biological threat agents",
+  "Insufficient flight surgeon CBRN readiness across MAJCOMs",
+  "Absence of real-time medical surveillance in distributed operations",
+  "Inadequate casualty decontamination protocols at forward locations",
+  "Lack of interoperable medical C2 systems for CBRN events",
+  "Insufficient personal protective equipment inventory at expeditionary sites",
+  "Absence of validated triage protocols for mass CBRN casualty events",
+  "Gap in aeromedical evacuation capabilities for contaminated patients",
+  "Insufficient medical countermeasure stockpile for biological agents",
+  "Lack of remote medical consultation capability in CBRN environments",
+  "Inadequate chemical agent antidote pre-positioning across the AOR",
+  "Insufficient nuclear/radiological dosimetry tracking infrastructure",
+  "Absence of medical intelligence integration in operational planning",
+  "Gap in behavioral health support for CBRN-exposed personnel",
+  "Inadequate training for mass fatality management in CBRN events",
+  "Lack of standardized CBRN medical reporting formats across MAJCOMs",
+  "Insufficient laboratory surge capacity for biological agent detection",
+  "Absence of mobile medical shelter CBRN hardening standards",
+  "Gap in patient tracking systems for CBRN casualty management",
+  "Inadequate CBRN medical simulation training resources",
+  "Lack of host-nation medical coordination protocols for CBRN events",
+  "Insufficient blood product storage in CBRN-contested environments",
+  "Absence of standardized CBRN medical equipment sets at unit level",
+  "Gap in telemedicine capability for remote CBRN consultations",
+  "Inadequate interagency coordination for CBRN mass casualty response",
+  "Lack of CBRN-specific surgical capability at Role 2 facilities",
+  "Insufficient burn care capacity for chemical exposure casualties",
+  "Absence of validated decontamination procedures for medical equipment",
+  "Gap in preventive medicine CBRN detection protocols",
+  "Inadequate CBRN training for non-medical support personnel",
+  "Lack of CBRN-resilient medical logistics supply chain",
+  "Insufficient mental health resources post-CBRN exposure",
+  "Absence of standardized CBRN exposure reporting system",
+  "Gap in pediatric CBRN treatment protocols for dependent populations",
+  "Inadequate veterinary support for CBRN agricultural threats",
+  "Lack of CBRN-trained medical NCO cadre at unit level",
+  "Insufficient environmental health capacity for CBRN site assessment",
+  "Absence of CBRN medical planning tools in operational systems",
+  "Gap in long-term health surveillance for CBRN-exposed personnel",
+  "Inadequate CBRN-specific pharmacy management protocols",
+  "Lack of standardized CBRN patient handoff procedures across roles of care",
+  "Insufficient medical CBRN exercise frequency across the enterprise",
+  "Absence of CBRN medical after-action review integration process",
+  "Gap in occupational health CBRN monitoring standards",
+  "Inadequate CBRN-specific critical care nursing capability",
+  "Lack of CBRN detection capability at medical treatment facilities",
+  "Insufficient respiratory therapy capacity for chemical casualty management",
+  "Absence of standardized CBRN skin decontamination protocol",
+  "Gap in ophthalmology support for chemical agent eye injury",
+  "Inadequate neurology support for nerve agent casualty management",
+  "Lack of CBRN medical threat intelligence dissemination process",
+  "Insufficient CBRN-specific toxicology consultation capability",
+  "Absence of integrated CBRN medical records system",
+  "Gap in radiation injury bone marrow treatment capability",
+  "Inadequate CBRN medical equipment maintenance training",
+  "Lack of standardized CBRN triage tag and documentation system",
+  "Insufficient CBRN-specific intensive care unit capacity at Role 3",
+  "Absence of validated biological threat agent rapid diagnostic tests",
+  "Gap in CBRN medical training for reserve component forces",
+  "Inadequate CBRN planning integration in operational medicine doctrine",
+  "Lack of interoperable CBRN alert and warning systems for medical units",
+  "Insufficient CBRN-specific physical therapy and rehabilitation capability",
+  "Absence of standardized CBRN hot-zone medical intervention protocol",
+  "Gap in CBRN-specific airway management training for medics",
+  "Inadequate CBRN medical support for special operations forces",
+  "Lack of CBRN-specific medical logistics pre-positioning strategy",
+  "Insufficient CBRN medical training for aeromedical evacuation crews",
+  "Absence of standardized CBRN field sanitation protocol",
+  "Gap in CBRN-specific pain management protocols",
+  "Inadequate CBRN medical support doctrine for multi-domain operations",
+  "Lack of standardized CBRN medical unit activation procedures",
+  "Insufficient CBRN-specific infection control protocols",
+  "Absence of CBRN medical equipment interoperability standards",
+  "Gap in CBRN-specific emergency medical technician training",
+  "Inadequate CBRN-specific toxicological screening capability",
+  "Lack of standardized CBRN medical surge capacity activation protocol",
+  "Insufficient CBRN-specific trauma surgery capability",
+  "Absence of integrated CBRN medical lessons learned repository",
+  "Gap in CBRN medical support for cyber-physical attack scenarios",
+  "Inadequate CBRN-specific medical ethics guidance for triage decisions",
+  "Lack of CBRN-specific medical logistics accountability system",
+  "Insufficient CBRN medical training for joint coalition partners",
+  "Absence of CBRN-specific medical readiness reporting metrics",
+  "Gap in CBRN decontamination support for wounded warriors",
+  "Inadequate CBRN-specific preventive medicine field kit inventory",
+  "Lack of standardized CBRN medical threat assessment framework",
+  "Insufficient CBRN-specific occupational exposure documentation system",
+  "Absence of CBRN medical planning cell at MAJCOM surgeon offices",
+  "Gap in CBRN-specific medical support for base defense operations",
+  "Inadequate CBRN-specific telehealth consultation platform",
+  "Lack of integrated CBRN medical training continuum across career fields"
+];
+
+const RESPONDENTS = ['AFMEDCOM HQ','AMC','PACAF','USAFE-AFAFRICA','AFSOC','ACC','AETC','AFGSC'];
+const COLORS = ['#58a6ff','#D85A30','#d4ac0d','#27ae60','#a371f7','#f78166','#79c0ff','#56d364'];
+
+const responses = {};
+let currentQ = 0;
+let viewMode = 'all';
+
+const qSelect = document.getElementById('qSelect');
+QUESTIONS.forEach((q, i) => {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = `Q${String(i+1).padStart(2,'0')} — ${q.substring(0,50)}${q.length>50?'…':''}`;
+  qSelect.appendChild(opt);
+});
+
+function getKey(q, r){ return `${r}||${q}`; } function getRespondent(){ return document.getElementById('respondentSel').value; }
+
+function getRiskColor(x, y){
+  const s = (x + y) / 2;
+  if(s >= 70) return '#e74c3c';
+  if(s >= 50) return '#e67e22';
+  if(s >= 30) return '#d4ac0d';
+  return '#27ae60';
+}
+
+function getRiskLabel(x, y){
+  const s = (x + y) / 2;
+  if(s >= 70) return 'HIGH RISK';
+  if(s >= 50) return 'SIGNIFICANT';
+  if(s >= 30) return 'MODERATE';
+  return 'LOW RISK';
+}
+
+function updateSlider(i){
+  const val = parseInt(document.getElementById('s'+i).value);
+  document.getElementById('v'+i).textContent = val;
+  document.getElementById('bf'+i).style.width = val+'%';
+  document.getElementById('bd'+i).style.left = val+'%';
+  const colors = ['#58a6ff','#D85A30','#d4ac0d','#27ae60'];
+  document.getElementById('v'+i).style.color = colors[i];
+  if(viewMode === 'current') drawHeatmap();
+  updateRiskLabel();
+}
+
+function updateRiskLabel(){
+  const v = [0,1,2,3].map(i => parseInt(document.getElementById('s'+i).value));
+  const label = getRiskLabel(v[2], (v[0]+v[1])/2);
+  const color = getRiskColor(v[2], (v[0]+v[1])/2);
+  const el = document.getElementById('riskLabel');
+  el.textContent = label;
+  el.style.color = color;
+}
+
+function loadResponse(q){
+  const r = getRespondent();
+  const key = getKey(q, r);
+  const data = responses[key] || [50,50,50,50];
+  [0,1,2,3].forEach(i => {
+    document.getElementById('s'+i).value = data[i];
+    updateSlider(i);
+  });
+  document.getElementById('qNum').textContent = `Question ${q+1} of 100`;
+  document.getElementById('qText').textContent = QUESTIONS[q];
+  const count = RESPONDENTS.filter(rr => responses[getKey(q,rr)]).length;
+  document.getElementById('respBadge').textContent = `${count} / ${RESPONDENTS.length} parties submitted`;
+  document.getElementById('respBadge').style.borderColor = count > 0 ? 'rgba(88,166,255,0.3)' : 'rgba(255,255,255,0.08)';
+  const sb = document.getElementById('saveBtn');
+  sb.textContent = responses[key] ? 'Update Response' : 'Save Response';
+  sb.classList.toggle('saved', !!responses[key]);
+  qSelect.value = q;
+  drawHeatmap();
+  updateStats();
+}
+
+[0,1,2,3].forEach(i => {
+  document.getElementById('s'+i).addEventListener('input', () => updateSlider(i)); });
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const r = getRespondent();
+  const key = getKey(currentQ, r);
+  responses[key] = [0,1,2,3].map(i => parseInt(document.getElementById('s'+i).value));
+  const sb = document.getElementById('saveBtn');
+  sb.textContent = '✓ Saved';
+  sb.classList.add('saved');
+  setTimeout(() => { sb.textContent = 'Update Response'; }, 1500);
+  loadResponse(currentQ);
+  drawHeatmap();
+  updateStats();
+});
+
+document.getElementById('prevBtn').addEventListener('click', () => { if(currentQ>0){ currentQ--; loadResponse(currentQ); }}); document.getElementById('nextBtn').addEventListener('click', () => { if(currentQ<99){ currentQ++; loadResponse(currentQ); }}); qSelect.addEventListener('change', () => { currentQ=parseInt(qSelect.value); loadResponse(currentQ); }); document.getElementById('respondentSel').addEventListener('change', () => loadResponse(currentQ)); document.getElementById('vAll').addEventListener('click', () => { viewMode='all'; setVT('vAll'); drawHeatmap(); }); document.getElementById('vCur').addEventListener('click', () => { viewMode='current'; setVT('vCur'); drawHeatmap(); }); document.getElementById('vComp').addEventListener('click', () => { viewMode='comp'; setVT('vComp'); drawHeatmap(); }); function setVT(id){ ['vAll','vCur','vComp'].forEach(v => document.getElementById(v).classList.toggle('active', v===id)); }
+
+function drawHeatmap(){
+  const canvas = document.getElementById('heatCanvas');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || 600;
+  const H = canvas.offsetHeight || 400;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const pad = {l:52, r:20, t:20, b:48};
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
+
+  ctx.clearRect(0,0,W,H);
+
+  // Background zones
+  const steps = 80;
+  for(let xi=0; xi<steps; xi++){
+    for(let yi=0; yi<steps; yi++){
+      const px = xi/steps, py = yi/steps;
+      const dist = Math.sqrt(px*px + py*py) / Math.sqrt(2);
+      let alpha = 0.13;
+      let col;
+      if(dist > 0.72) col = `rgba(231,76,60,${alpha})`;
+      else if(dist > 0.52) col = `rgba(230,126,34,${alpha})`;
+      else if(dist > 0.32) col = `rgba(212,172,13,${alpha})`;
+      else col = `rgba(39,174,96,${alpha})`;
+      ctx.fillStyle = col;
+      ctx.fillRect(pad.l + px*cw, pad.t + (1-py-1/steps)*ch, cw/steps+1, ch/steps+1);
+    }
+  }
+
+  // Zone arcs
+  [[0.72,'rgba(231,76,60,0.5)'],[0.52,'rgba(230,126,34,0.5)'],[0.32,'rgba(212,172,13,0.5)']].forEach(([r,c]) => {
+    ctx.beginPath();
+    ctx.arc(pad.l, pad.t+ch, r*Math.sqrt(cw*cw+ch*ch)*0.88, -Math.PI/2, 0);
+    ctx.strokeStyle = c;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5,5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t+ch); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pad.l, pad.t+ch); ctx.lineTo(pad.l+cw, pad.t+ch); ctx.stroke();
+
+  // Grid + labels
+  [0,25,50,75,100].forEach(v => {
+    const x = pad.l + v/100*cw;
+    const y = pad.t + ch - v/100*ch;
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t+ch); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l+cw, y); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '10px IBM Plex Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(v, x, pad.t+ch+14);
+    if(v>0){ ctx.textAlign='right'; ctx.fillText(v, pad.l-5, y+3); }
+  });
+
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '11px IBM Plex Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('PROBABILITY  (Likelihood of Occurring)', pad.l+cw/2, H-6);
+  ctx.save(); ctx.translate(13, pad.t+ch/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('CONSEQUENCE  (Risk to Mission + Force)', 0, 0); ctx.restore();
+
+  if(viewMode === 'all'){
+    for(let q=0; q<100; q++){
+      let vals = [];
+      RESPONDENTS.forEach(r => { const k = getKey(q,r); if(responses[k]) vals.push(responses[k]); });
+      if(!vals.length) continue;
+      const avg = [0,1,2,3].map(i => vals.reduce((s,v)=>s+v[i],0)/vals.length);
+      const px = pad.l + avg[2]/100*cw;
+      const py = pad.t + ch - ((avg[0]+avg[1])/2)/100*ch;
+      const isActive = q === currentQ;
+      ctx.beginPath();
+      ctx.arc(px, py, isActive ? 8 : 5, 0, Math.PI*2);
+      ctx.fillStyle = isActive ? '#fff' : getRiskColor(avg[2], (avg[0]+avg[1])/2);
+      ctx.globalAlpha = isActive ? 1 : 0.75;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      if(isActive){
+        ctx.strokeStyle = getRiskColor(avg[2], (avg[0]+avg[1])/2);
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px IBM Plex Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Q${q+1}`, px, py-12);
+      }
+    }
+  } else if(viewMode === 'current'){
+    const cur = [0,1,2,3].map(i => parseInt(document.getElementById('s'+i).value));
+    const px = pad.l + cur[2]/100*cw;
+    const py = pad.t + ch - ((cur[0]+cur[1])/2)/100*ch;
+    const rc = getRiskColor(cur[2], (cur[0]+cur[1])/2);
+    ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI*2);
+    ctx.fillStyle = rc; ctx.globalAlpha = 0.2; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2);
+    ctx.fillStyle = rc; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px IBM Plex Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Q${currentQ+1}`, px, py-14);
+    ctx.font = '10px IBM Plex Mono, monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillText(`(${Math.round(cur[2])}, ${Math.round((cur[0]+cur[1])/2)})`, px, py+20);
+  } else {
+    // By-party view for current question
+    RESPONDENTS.forEach((r, ri) => {
+      const key = getKey(currentQ, r);
+      if(!responses[key]) return;
+      const v = responses[key];
+      const px = pad.l + v[2]/100*cw;
+      const py = pad.t + ch - ((v[0]+v[1])/2)/100*ch;
+      ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI*2);
+      ctx.fillStyle = COLORS[ri]; ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = COLORS[ri];
+      ctx.font = '10px IBM Plex Mono, monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(r.substring(0,12), px+9, py+3);
+    });
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = '11px IBM Plex Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Q${currentQ+1} — Party comparison`, pad.l+cw/2, pad.t+14);
+  }
+}
+
+function updateStats(){
+  let sums = [0,0,0,0], count = 0;
+  const qsAssessed = new Set();
+  for(let q=0; q<100; q++){
+    RESPONDENTS.forEach(r => {
+      const k = getKey(q,r);
+      if(responses[k]){
+        [0,1,2,3].forEach(i => sums[i] += responses[k][i]);
+        count++;
+        qsAssessed.add(q);
+      }
+    });
+  }
+  [0,1,2].forEach(i => document.getElementById('st'+i).textContent = count > 0 ? Math.round(sums[i]/count) : '—');
+  document.getElementById('st3').textContent = qsAssessed.size; }
+
+// Export CSV
+document.getElementById('exportCSV').addEventListener('click', () => {
+  const rows = ['Respondent,Question #,Question Text,Risk to Mission,Risk to Force,Likelihood,Urgency of Mitigating'];
+  RESPONDENTS.forEach(r => {
+    for(let q=0; q<100; q++){
+      const k = getKey(q,r);
+      if(responses[k]){
+        const v = responses[k];
+        rows.push(`"${r}",${q+1},"${QUESTIONS[q]}",${v[0]},${v[1]},${v[2]},${v[3]}`);
+      }
+    }
+  });
+  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'capability_gap_risk_assessment.csv'; a.click(); });
+
+// Export PNG
+document.getElementById('exportPNG').addEventListener('click', () => {
+  const canvas = document.getElementById('heatCanvas');
+  const a = document.createElement('a'); a.href = canvas.toDataURL('image/png');
+  a.download = `risk_heatmap_Q${currentQ+1}.png`; a.click(); });
+
+// Seed demo data
+function seed(){
+  const high = [0,1,2,3,4,5];
+  for(let q=0; q<25; q++){
+    ['AFMEDCOM HQ','AMC','PACAF','USAFE-AFAFRICA'].forEach(r => {
+      let v;
+      if(high.includes(q)) v = [60+Math.round(Math.random()*30), 65+Math.round(Math.random()*25), 55+Math.round(Math.random()*35), 70+Math.round(Math.random()*20)];
+      else v = [20+Math.round(Math.random()*55), 25+Math.round(Math.random()*50), 20+Math.round(Math.random()*55), 25+Math.round(Math.random()*45)];
+      responses[getKey(q,r)] = v;
+    });
+  }
+}
+seed();
+loadResponse(0);
+window.addEventListener('resize', () => { setTimeout(drawHeatmap, 50); }); setTimeout(drawHeatmap, 150); </script> </body> </html>
